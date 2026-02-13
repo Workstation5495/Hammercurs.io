@@ -2,73 +2,41 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HAMMER.IO | PROTOCOL_Ω</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HAMMER.IO — Arena</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="vignette"></div>
-    <div class="scanlines"></div>
 
-    <div id="ui-wrapper">
-        <div class="terminal-frame">
-            <div class="header">SYSTEM_INIT_v4.0</div>
-            <div class="glitch-container">
-                <h1 class="glitch" data-text="HAMMER.IO">HAMMER.IO</h1>
+    <div id="ui-overlay">
+        <div class="main-card">
+            <h1 class="logo">HAMMER<span>.IO</span></h1>
+            <div class="input-box">
+                <input type="text" id="playerNick" placeholder="Enter Nickname..." maxlength="12">
+                <button id="btn-play" onclick="startGame()">PLAY</button>
             </div>
-            
-            <div class="input-section">
-                <div class="scanner-line"></div>
-                <label>IDENT_CODE:</label>
-                <input type="text" id="playerNick" placeholder="AWAITING_INPUT..." maxlength="12" spellcheck="false">
+            <div class="rules">
+                <span>15s to Smash</span> • <span>3 Hammers per Turn</span> • <span>Don't Explode</span>
             </div>
-
-            <div class="stats-preview">
-                <div class="stat"><span class="label">CORE:</span> <span class="val">ONLINE</span></div>
-                <div class="stat"><span class="label">PVP:</span> <span class="val">ENABLED</span></div>
-                <div class="stat"><span class="label">LOSS:</span> <span class="val">SEQUENCE_DEATH</span></div>
-            </div>
-
-            <button class="btn-init" onclick="startGame()">
-                <span class="text">INITIATE_SEQUENCE</span>
-                <span class="flare"></span>
-            </button>
-            
-            <div class="footer">DATABASE_SYNC_STABLE // 2026</div>
         </div>
     </div>
 
     <div id="game-hud" style="display: none;">
-        <div class="hud-box top-left">
-            <div class="hud-row"><span class="h-label">PROTOCOL:</span> <span id="protocol-status" class="h-val">NULL</span></div>
-            <div class="hud-row"><span class="h-label">ID:</span> <span id="my-id-display" class="h-val">#0000</span></div>
-        </div>
-
-        <div class="hud-box top-right">
-            <div class="hud-row"><span class="h-label">RANK:</span> <span id="my-rank" class="h-val">00</span></div>
-            <div class="hud-row"><span class="h-label">PTS:</span> <span id="my-score" class="h-val">0000</span></div>
-        </div>
-
-        <div class="timer-container">
-            <svg class="timer-svg" viewBox="0 0 100 100">
-                <circle class="timer-bg" cx="50" cy="50" r="45"></circle>
-                <circle id="timer-bar" cx="50" cy="50" r="45"></circle>
-            </svg>
-            <div id="timer-text">15</div>
+        <div class="hud-top">
+            <div class="score-board">SCORE: <span id="score-val">0</span></div>
+            <div id="timer-box">15</div>
         </div>
         
-        <div id="ammo-indicator"></div>
-    </div>
+        <div id="ammo-gui"></div>
 
-    <div id="leaderboard-container">
-        <div class="lb-title">TOP_SURVIVORS</div>
-        <div id="rank-list"></div>
+        <div class="leaderboard">
+            <div class="lb-title">LEADERBOARD</div>
+            <div id="lb-list"></div>
+        </div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
-
-    <audio id="sfx-hit" src=""></audio>
-    <audio id="sfx-death" src=""></audio>
 
     <script type="module" src="app.js"></script>
 </body>
