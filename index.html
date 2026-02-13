@@ -3,33 +3,338 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HAMMER.IO | STABLE</title>
-    <link rel="stylesheet" href="style.css">
+    <title>HAMMER.IO | GLOBAL</title>
+    <style>
+        /* === 1. VISUAL CORE (СТИЛИ) === */
+        :root { --main: #00f3ff; --danger: #ff0055; --bg: #050508; }
+        body { margin: 0; overflow: hidden; background: var(--bg); font-family: 'Courier New', monospace; user-select: none; }
+        
+        /* UI ЛОББИ */
+        #lobby-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 5, 8, 0.98); z-index: 100;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .panel { 
+            border: 2px solid var(--main); padding: 40px; text-align: center; 
+            background: #101015; box-shadow: 0 0 50px rgba(0, 243, 255, 0.1);
+            width: 300px;
+        }
+        h1 { color: var(--main); font-size: 40px; margin: 0 0 20px; letter-spacing: 5px; }
+        h1 span { color: #fff; }
+        
+        /* СПИСОК ИГРОКОВ В МЕНЮ */
+        #lobby-list {
+            margin: 20px 0; padding: 10px; border: 1px solid #333;
+            height: 100px; overflow-y: auto; color: #888; font-size: 12px; text-align: left;
+        }
+        .lobby-item { padding: 5px; border-bottom: 1px solid #222; }
+
+        input { 
+            background: #000; border: 1px solid var(--main); color: white; 
+            padding: 15px; width: 80%; font-size: 18px; text-align: center; outline: none;
+        }
+        button {
+            margin-top: 20px; padding: 15px 40px; font-size: 20px; font-weight: bold;
+            background: var(--main); border: none; cursor: pointer; width: 100%;
+        }
+        button:hover { background: #fff; }
+
+        /* HUD ИГРЫ */
+        #game-ui { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .hud-top { display: flex; justify-content: space-between; padding: 20px; }
+        .stat-box { font-size: 24px; font-weight: bold; color: white; text-shadow: 0 2px 0 #000; }
+        #timer-display { color: var(--danger); }
+        
+        #ammo-bar {
+            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 8px;
+        }
+        .ammo { width: 12px; height: 30px; background: #ffd700; transform: skewX(-20deg); box-shadow: 0 0 10px #ffd700; }
+        .ammo.empty { background: #333; box-shadow: none; }
+
+        /* КИЛЛ-ФИД */
+        #killfeed {
+            position: absolute; top: 80px; right: 20px; text-align: right;
+            font-size: 14px; color: var(--danger); font-weight: bold;
+        }
+    </style>
 </head>
 <body>
 
-    <div id="menu-screen">
-        <div class="menu-box">
+    <div id="lobby-screen">
+        <div class="panel">
             <h1>HAMMER<span>.IO</span></h1>
-            <div class="status-line">ROOM: <span style="color:#00ff00">ONLINE</span></div>
-            <input type="text" id="nickname" placeholder="ТВОЙ НИКНЕЙМ" maxlength="12" autocomplete="off">
-            <button id="start-btn">JOIN ROOM</button>
+            <div id="lobby-list">Loading list...</div>
+            <input type="text" id="nick-input" placeholder="You Name" maxlength="10">
+            <button onclick="startGame()">PLAY</button>
+            <div style="margin-top:15px; font-size:10px; color:#555;">BOTS AUTO-ENABLE IF SOLO</div>
         </div>
     </div>
 
     <div id="game-ui">
-        <div class="top-panel">
-            <div class="score-box">ОЧКИ: <span id="score-display">0</span></div>
-            <div class="timer-box" id="timer-display">--</div>
+        <div class="hud-top">
+            <div class="stat-box">PTS: <span id="score">0</span></div>
+            <div class="stat-box" id="timer-display">--</div>
         </div>
-        
-        <div id="ammo-container"></div>
-        
-        <div id="kill-feed"></div>
+        <div id="killfeed"></div>
+        <div id="ammo-bar"></div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
 
-    <script type="module" src="app.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue, update, onDisconnect, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // КОНФИГ
+        const KEYS = {
+            k: "QUl6YVN5QV80a1pkLUFTRVhBQXEtR2NrYzJqeTZsaWpQTFF6S20w",
+            d: "aGFtbWVyY3Vycy1pby5maXJlYmFzZWFwcC5jb20=",
+            u: "aHR0cHM6Ly9oYW1tZXJjdXJzLWlvLWRlZmF1bHQtcnRkYi5ldXJvcGUtd2VzdDEuZmlyZWJhc2VkYXRhYmFzZS5hcHA=",
+            p: "aGFtbWVyY3Vycy1pbw==",
+            s: "aGFtbWVyY3Vycy1pby5maXJlYmFzZXN0b3JhZ2UuYXBw",
+            m: "MTA1MTg5OTk2MDk3Mw==",
+            a: "MToxMDUxODk5OTYwOTczOndlYjoxNDIzNTg1YTFhMjFkN2ZmMTMwY2M0"
+        };
+        const app = initializeApp({
+            apiKey: atob(KEYS.k), authDomain: atob(KEYS.d), databaseURL: atob(KEYS.u),
+            projectId: atob(KEYS.p), storageBucket: atob(KEYS.s), messagingSenderId: atob(KEYS.m), appId: atob(KEYS.a)
+        });
+        const db = getDatabase(app);
+
+        // ПЕРЕМЕННЫЕ
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let myId = Math.random().toString(36).substring(7);
+        let myNick = "Player";
+        let players = {};
+        let bots = [];
+        let hammers = [];
+        let particles = [];
+        let isHunter = false;
+        let ammo = 3;
+        let mouse = { x: 0, y: 0, down: false };
+        let rotation = 0;
+        let shake = 0;
+        let hStart = 0;
+        let score = 0;
+
+        // РЕСАЙЗ
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // === 3. ЛОББИ СИСТЕМА ===
+        // Слушаем список игроков ДО старта
+        onValue(ref(db, `rooms/global/players`), snap => {
+            const list = document.getElementById('lobby-list');
+            const data = snap.val() || {};
+            list.innerHTML = '';
+            let count = 0;
+            for(let id in data) {
+                list.innerHTML += `<div class="lobby-item">👤 ${data[id].nick}</div>`;
+                count++;
+            }
+            if(count === 0) list.innerHTML = '<div style="padding:5px">Waiting...</div>';
+            
+            // ОБНОВЛЕНИЕ В ИГРЕ
+            players = data;
+            
+            // Если мы в игре, проверяем состояние
+            if(document.getElementById('game-ui').style.display === 'block') {
+                checkGameState(data);
+            }
+        });
+
+        // === 4. СТАРТ ИГРЫ ===
+        window.startGame = function() {
+            const val = document.getElementById('nick-input').value;
+            if(val) myNick = val;
+
+            document.getElementById('lobby-screen').style.display = 'none';
+            document.getElementById('game-ui').style.display = 'block';
+
+            // Регистрация
+            const myRef = ref(db, `rooms/global/players/${myId}`);
+            set(myRef, { nick: myNick, x: 0, y: 0, isHunter: false, status: 'ALIVE' });
+            onDisconnect(myRef).remove();
+
+            // Если я один - запускаем ботов
+            if(Object.keys(players).length <= 1) initBots();
+
+            loop();
+        };
+
+        // === 5. ЛОГИКА БОТОВ (AI) ===
+        function initBots() {
+            for(let i=0; i<3; i++) {
+                bots.push({
+                    id: 'bot_'+i, x: Math.random()*canvas.width, y: Math.random()*canvas.height,
+                    vx: 2, vy: 2, nick: 'BOT_'+(i+1), isHunter: false, status: 'ALIVE'
+                });
+            }
+        }
+        
+        function updateBots() {
+            bots.forEach(b => {
+                if(b.status === 'DEAD') return;
+                
+                // Простое движение
+                b.x += b.vx; b.y += b.vy;
+                if(b.x < 0 || b.x > canvas.width) b.vx *= -1;
+                if(b.y < 0 || b.y > canvas.height) b.vy *= -1;
+
+                // Если бот Хантер (простая логика)
+                if(b.isHunter && Math.random() < 0.01) { 
+                    // Бот стреляет (фейк)
+                }
+            });
+        }
+
+        // === 6. ЛОГИКА ИГРЫ (HANTER & PHYSICS) ===
+        function checkGameState(data) {
+            // Смерть
+            if(data[myId]?.status === 'DEAD') {
+                shake = 50;
+                setTimeout(() => location.reload(), 500);
+            }
+
+            // Назначение Хантера
+            const hasHunter = Object.values(data).some(p => p.isHunter);
+            const activeBots = bots.filter(b => b.status === 'ALIVE');
+            
+            // Если хантера нет, назначаем (с учетом ботов)
+            if(!hasHunter && Object.keys(data).length > 0) {
+                 update(ref(db, `rooms/global/players/${Object.keys(data)[0]}`), { isHunter: true, t: Date.now() });
+            }
+
+            // Моя роль
+            const me = data[myId];
+            if(me?.isHunter) {
+                if(!isHunter) { isHunter = true; ammo = 3; hStart = Date.now(); updateAmmo(); }
+                let t = Math.max(0, 15 - (Date.now() - hStart)/1000).toFixed(1);
+                document.getElementById('timer-display').innerText = t;
+                if(t <= 0) update(ref(db, `rooms/global/players/${myId}`), { status: 'DEAD' });
+            } else {
+                isHunter = false;
+                document.getElementById('timer-display').innerText = "SURVIVE";
+                document.getElementById('ammo-bar').innerHTML = "";
+            }
+        }
+
+        // УПРАВЛЕНИЕ
+        window.addEventListener('mousemove', e => {
+            mouse.x = e.clientX; mouse.y = e.clientY;
+            if(players[myId]) update(ref(db, `rooms/global/players/${myId}`), { x: Math.round(mouse.x), y: Math.round(mouse.y) });
+        });
+        window.addEventListener('mousedown', () => { if(isHunter && ammo > 0) mouse.down = true; });
+        window.addEventListener('mouseup', () => { if(mouse.down) { shoot(); mouse.down = false; }});
+
+        function shoot() {
+            ammo--; updateAmmo();
+            const vx = Math.cos(rotation + Math.PI/2) * 25;
+            const vy = Math.sin(rotation + Math.PI/2) * 25;
+            hammers.push({ x: mouse.x, y: mouse.y, vx, vy, life: 50, angle: rotation });
+        }
+
+        function updateAmmo() {
+            const b = document.getElementById('ammo-bar'); b.innerHTML = '';
+            for(let i=0; i<3; i++) b.innerHTML += `<div class="ammo ${i<ammo?'':'empty'}"></div>`;
+        }
+
+        // ЭФФЕКТЫ
+        function spawnParticles(x, y, color) {
+            shake = 20;
+            for(let i=0; i<15; i++) particles.push({x, y, vx:(Math.random()-0.5)*10, vy:(Math.random()-0.5)*10, life:1, color});
+        }
+
+        // === 7. ГЛАВНЫЙ ЦИКЛ (RENDER) ===
+        const HAMMER_PATH = new Path2D("M-15 -10 L15 -10 L20 10 L-20 10 Z M-5 10 L5 10 L5 60 L-5 60 Z");
+
+        function loop() {
+            // Фон и Тряска
+            ctx.fillStyle = "#050508"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            if(shake > 0) { ctx.translate((Math.random()-0.5)*shake, (Math.random()-0.5)*shake); shake*=0.9; }
+
+            // Обновляем ботов
+            updateBots();
+
+            // Рисуем ВСЕХ (Игроки + Боты)
+            const allEntities = [...Object.values(players), ...bots];
+            
+            allEntities.forEach(p => {
+                if(p.status === 'DEAD') return;
+                
+                // Интерполяция (простая)
+                const color = p.isHunter ? "#ff0055" : (p.id?.startsWith('bot') ? "#888" : "#00f3ff");
+                
+                ctx.save(); ctx.translate(p.x, p.y);
+                
+                // Неоновое свечение
+                ctx.shadowBlur = 15; ctx.shadowColor = color;
+                ctx.fillStyle = color;
+                ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI*2); ctx.fill();
+                
+                // Ник
+                ctx.shadowBlur = 0; ctx.fillStyle = "white"; ctx.font = "10px Courier New"; 
+                ctx.textAlign = "center"; ctx.fillText(p.nick, 0, -20);
+                ctx.restore();
+            });
+
+            // Молот в руках
+            if(isHunter) {
+                rotation += 0.35;
+                ctx.save(); ctx.translate(mouse.x, mouse.y); ctx.rotate(rotation);
+                ctx.fillStyle = "#ffd700"; ctx.shadowBlur=20; ctx.shadowColor="#ffd700";
+                if(mouse.down) ctx.scale(1.2, 1.2);
+                ctx.fill(HAMMER_PATH);
+                ctx.restore();
+            }
+
+            // Летящие снаряды
+            hammers.forEach((h, i) => {
+                h.x += h.vx; h.y += h.vy; h.life--;
+                
+                ctx.save(); ctx.translate(h.x, h.y); ctx.rotate(h.angle);
+                ctx.fillStyle = "#ffd700"; ctx.fill(HAMMER_PATH); ctx.restore();
+
+                if(h.life <= 0) {
+                    spawnParticles(h.x, h.y, "#ffd700");
+                    hammers.splice(i, 1);
+                    
+                    if(isHunter) {
+                        // Проверка попадания (Игроки)
+                        Object.keys(players).forEach(tid => {
+                            if(tid !== myId && !players[tid].isHunter && Math.hypot(players[tid].x - h.x, players[tid].y - h.y) < 60) {
+                                update(ref(db, `rooms/global/players/${tid}`), { status: 'DEAD' });
+                                score += 300; document.getElementById('score').innerText = score;
+                            }
+                        });
+                        // Проверка попадания (Боты)
+                        bots.forEach(b => {
+                            if(!b.isHunter && b.status === 'ALIVE' && Math.hypot(b.x - h.x, b.y - h.y) < 60) {
+                                b.status = 'DEAD'; spawnParticles(b.x, b.y, "#888");
+                                score += 300; document.getElementById('score').innerText = score;
+                            }
+                        });
+                    }
+                }
+            });
+
+            // Частицы
+            particles.forEach((p, i) => {
+                p.x += p.vx; p.y += p.vy; p.life -= 0.05;
+                ctx.fillStyle = p.color; ctx.globalAlpha = p.life;
+                ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2); ctx.fill();
+                if(p.life <= 0) particles.splice(i, 1);
+            });
+            ctx.globalAlpha = 1;
+
+            ctx.restore();
+            requestAnimationFrame(loop);
+        }
+    </script>
 </body>
 </html>
