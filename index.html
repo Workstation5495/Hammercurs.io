@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HAMMER.IO | Official Arena</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="ui-wrapper">
+        <div class="menu-card">
+            <h1>HAMMER.IO</h1>
+            <input type="text" id="playerNick" placeholder="ENTER NICKNAME..." maxlength="12">
+            <div class="modes">
+                <button class="btn btn-play" onclick="startGame('quick')">QUICK PLAY (1M)</button>
+                <button class="btn btn-create" onclick="startGame('pro')">PRO ARENA (5M)</button>
+            </div>
+            <p class="warning">CAUTION: DEATH = -300 PTS</p>
+        </div>
+    </div>
+
+    <div id="leaderboard">
+        <h3>GLOBAL TOP 100</h3>
+        <div id="rank-list"></div>
+        <div id="my-rank" class="my-score">YOUR RANK: #---</div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
