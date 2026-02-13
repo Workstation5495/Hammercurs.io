@@ -1,90 +1,76 @@
-:root {
-    --bg: #f0f2f5;
-    --accent: #ff4757;
-    --secondary: #2f3542;
-    --white: #ffffff;
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
+
+body {
+    margin: 0;
+    overflow: hidden; /* Убирает прокрутку */
+    background-color: #1a1a2e;
+    font-family: 'Roboto Mono', monospace;
+    user-select: none; /* Защита от выделения текста */
 }
 
-body, html {
-    margin: 0; padding: 0;
-    width: 100%; height: 100%;
-    overflow: hidden;
-    background: var(--bg);
-    font-family: 'Montserrat', sans-serif;
-}
-
-/* Menu Styling */
-#ui-overlay {
-    position: fixed; width: 100%; height: 100%;
+/* ЭКРАН МЕНЮ */
+#menu-screen {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(15, 15, 20, 0.95);
     display: flex; align-items: center; justify-content: center;
-    background: rgba(255, 255, 255, 0.9);
-    z-index: 1000; transition: 0.5s;
+    z-index: 1000;
 }
 
-.main-card {
+.menu-box {
     text-align: center;
-    background: var(--white);
-    padding: 60px;
-    border-radius: 40px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.05);
+    background: #16213e;
+    padding: 40px;
+    border: 2px solid #0f3460;
+    border-radius: 15px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
 }
 
-.logo {
-    font-size: 80px; font-weight: 900;
-    color: var(--secondary); margin: 0 0 40px;
-    letter-spacing: -2px;
+h1 {
+    color: #e94560; font-size: 60px; margin: 0 0 20px;
+    text-shadow: 0 0 10px #e94560;
 }
+h1 span { color: #fff; }
 
-.logo span { color: var(--accent); }
-
-.input-box { display: flex; gap: 15px; }
+.status-line { color: #888; font-size: 12px; margin-bottom: 20px; }
 
 input {
-    padding: 20px 30px; border-radius: 20px;
-    border: 2px solid #eee; font-size: 20px;
-    font-weight: 700; outline: none; width: 250px;
-    transition: 0.3s;
+    display: block; width: 250px; padding: 15px; margin: 0 auto 20px;
+    background: #0f3460; border: none; color: white;
+    font-size: 18px; text-align: center; border-radius: 5px;
+    outline: none;
+}
+input:focus { box-shadow: 0 0 10px #0f3460; }
+
+button {
+    padding: 15px 40px; font-size: 20px; font-weight: bold;
+    background: #e94560; color: white; border: none;
+    cursor: pointer; border-radius: 5px; transition: 0.2s;
+}
+button:hover { transform: scale(1.05); box-shadow: 0 0 20px #e94560; }
+
+/* ИНТЕРФЕЙС ИГРЫ */
+#game-ui { display: none; position: absolute; width: 100%; height: 100%; pointer-events: none; }
+
+.top-panel {
+    display: flex; justify-content: space-between; padding: 20px;
 }
 
-input:focus { border-color: var(--accent); }
-
-#btn-play {
-    padding: 20px 50px; border-radius: 20px;
-    border: none; background: var(--accent);
-    color: white; font-size: 20px; font-weight: 900;
-    cursor: pointer; transition: 0.2s;
+.score-box, .timer-box {
+    background: rgba(0,0,0,0.6); color: white;
+    padding: 10px 20px; border-radius: 8px; font-size: 24px; font-weight: bold;
 }
 
-#btn-play:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(255,71,87,0.3); }
+.timer-box { color: #e94560; min-width: 50px; text-align: center; }
 
-.rules { margin-top: 30px; color: #a4b0be; font-weight: 700; }
-
-/* In-game HUD */
-#game-hud { position: absolute; width: 100%; height: 100%; pointer-events: none; }
-
-.hud-top {
-    display: flex; justify-content: space-between;
-    padding: 40px; align-items: center;
+#ammo-container {
+    position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 10px;
 }
 
-.score-board {
-    background: var(--secondary); color: white;
-    padding: 15px 30px; border-radius: 100px;
-    font-weight: 900; font-size: 18px;
+.ammo-bullet {
+    width: 15px; height: 35px; background: #e94560;
+    border: 1px solid white; transform: skewX(-15deg);
 }
+.ammo-bullet.empty { background: transparent; opacity: 0.3; }
 
-#timer-box {
-    width: 60px; height: 60px; background: var(--accent);
-    color: white; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 900; font-size: 24px;
-}
-
-.leaderboard {
-    position: absolute; right: 40px; top: 130px;
-    background: var(--white); padding: 25px;
-    border-radius: 30px; width: 220px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-}
-
-.lb-title { font-weight: 900; margin-bottom: 15px; color: var(--secondary); font-size: 14px; }
+canvas { display: block; }
