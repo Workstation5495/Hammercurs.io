@@ -1,39 +1,31 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HAMMER.IO — Arena</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HAMMER.IO | STABLE</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <div id="ui-overlay">
-        <div class="main-card">
-            <h1 class="logo">HAMMER<span>.IO</span></h1>
-            <div class="input-box">
-                <input type="text" id="playerNick" placeholder="Enter Nickname..." maxlength="12">
-                <button id="btn-play" onclick="startGame()">PLAY</button>
-            </div>
-            <div class="rules">
-                <span>15s to Smash</span> • <span>3 Hammers per Turn</span> • <span>Don't Explode</span>
-            </div>
+    <div id="menu-screen">
+        <div class="menu-box">
+            <h1>HAMMER<span>.IO</span></h1>
+            <div class="status-line">ROOM: <span style="color:#00ff00">ONLINE</span></div>
+            <input type="text" id="nickname" placeholder="ТВОЙ НИКНЕЙМ" maxlength="12" autocomplete="off">
+            <button id="start-btn">JOIN ROOM</button>
         </div>
     </div>
 
-    <div id="game-hud" style="display: none;">
-        <div class="hud-top">
-            <div class="score-board">SCORE: <span id="score-val">0</span></div>
-            <div id="timer-box">15</div>
+    <div id="game-ui">
+        <div class="top-panel">
+            <div class="score-box">ОЧКИ: <span id="score-display">0</span></div>
+            <div class="timer-box" id="timer-display">--</div>
         </div>
         
-        <div id="ammo-gui"></div>
-
-        <div class="leaderboard">
-            <div class="lb-title">LEADERBOARD</div>
-            <div id="lb-list"></div>
-        </div>
+        <div id="ammo-container"></div>
+        
+        <div id="kill-feed"></div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
