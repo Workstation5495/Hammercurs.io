@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HammerCurs.io - GOLD EDITION</title>
+    <title>HammerCurs.io - GOLD PRIME</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
@@ -12,97 +12,116 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
 
-        /* --- GLOBAL --- */
+        /* --- 1. CORE & RESET --- */
+        * { box-sizing: border-box; }
+        
         body { 
             margin: 0; overflow: hidden; background: #050505; 
             font-family: 'Orbitron', sans-serif; color: white; user-select: none; 
         }
 
-        /* --- MENU --- */
-        #bg-canvas { position: absolute; top: 0; left: 0; z-index: 1; opacity: 0.4; }
+        /* --- 2. LOBBY UI (Centered & Stable) --- */
+        #bg-canvas { position: absolute; top: 0; left: 0; z-index: 1; opacity: 0.5; }
 
         #lobby-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; flex-direction: column;
-            justify-content: center; align-items: center; z-index: 10;
-            background: radial-gradient(circle, rgba(20,20,20,0.8) 0%, rgba(0,0,0,1) 100%);
+            display: flex; flex-direction: column; 
+            justify-content: center; align-items: center;
+            z-index: 10;
+            background: radial-gradient(circle, rgba(10,10,10,0.95) 0%, rgba(0,0,0,1) 100%);
         }
 
         .logo {
             font-size: 80px; font-weight: 900; letter-spacing: 5px;
-            background: linear-gradient(180deg, #fff 20%, #ffcc00 100%);
+            background: linear-gradient(180deg, #ffffff 20%, #ffcc00 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 40px rgba(255, 204, 0, 0.5);
+            text-shadow: 0 0 50px rgba(255, 204, 0, 0.4);
             margin-bottom: 40px; text-transform: uppercase;
-            animation: float 3s ease-in-out infinite;
+            text-align: center;
+            animation: float 4s ease-in-out infinite;
         }
 
         .input-box {
-            background: rgba(0, 0, 0, 0.6);
-            border: 1px solid rgba(255, 204, 0, 0.3);
-            backdrop-filter: blur(15px);
-            padding: 40px; border-radius: 4px;
-            display: flex; flex-direction: column; gap: 25px;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
-            width: 350px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 204, 0, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 40px; border-radius: 8px;
+            display: flex; flex-direction: column; gap: 20px;
+            box-shadow: 0 0 80px rgba(0,0,0,1);
+            width: 400px; max-width: 90%;
+            text-align: center;
+            transform: skewX(-2deg);
         }
 
         input {
-            background: transparent; border: none; border-bottom: 2px solid #333;
-            color: #ffcc00; font-size: 24px; text-align: center; font-family: 'Orbitron';
+            background: transparent; border: none; border-bottom: 2px solid #444;
+            color: #ffcc00; font-size: 24px; font-family: 'Orbitron';
             padding: 10px; width: 100%; outline: none; transition: 0.3s;
+            text-align: center; font-weight: bold;
         }
-        input:focus { border-color: #ffcc00; box-shadow: 0 10px 20px -10px rgba(255, 204, 0, 0.2); }
-        input::placeholder { color: #555; }
+        input:focus { border-color: #ffcc00; box-shadow: 0 5px 10px rgba(255, 204, 0, 0.1); }
+        input::placeholder { color: #444; }
 
         .play-btn {
-            background: #ffcc00; color: #000; border: none;
-            font-size: 28px; font-weight: 900; padding: 15px;
-            cursor: pointer; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-            transition: 0.2s; text-transform: uppercase; letter-spacing: 2px;
-            box-shadow: 0 0 20px rgba(255, 204, 0, 0.4);
+            background: linear-gradient(90deg, #ffcc00, #ff9900);
+            color: #000; border: none;
+            font-size: 24px; font-weight: 900; padding: 18px 0; width: 100%;
+            cursor: pointer; 
+            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+            transition: 0.2s; text-transform: uppercase; letter-spacing: 3px;
+            margin-top: 15px; text-shadow: 0 1px 0 rgba(255,255,255,0.4);
         }
-        .play-btn:hover { background: #fff; transform: scale(1.05); box-shadow: 0 0 30px rgba(255, 204, 0, 0.8); }
-        .play-btn:active { transform: scale(0.95); }
+        .play-btn:hover { transform: scale(1.02); filter: brightness(1.1); box-shadow: 0 0 20px rgba(255, 204, 0, 0.5); }
+        .play-btn:active { transform: scale(0.98); }
 
         .online-status {
-            font-size: 12px; color: #666; text-align: center; margin-top: -10px;
-            display: flex; justify-content: center; align-items: center; gap: 5px;
+            font-size: 11px; color: #666; 
+            display: flex; justify-content: center; align-items: center; gap: 8px;
+            margin-top: 15px; letter-spacing: 1px;
         }
-        .dot { width: 8px; height: 8px; background: #00ff00; border-radius: 50%; box-shadow: 0 0 5px #00ff00; }
+        .dot { width: 6px; height: 6px; background: #00ff00; border-radius: 50%; box-shadow: 0 0 8px #00ff00; }
 
-        /* LOADING BAR */
-        .loading-container { width: 100%; height: 4px; background: #222; margin-top: 10px; display: none; }
+        /* LOADING UI */
+        .loading-wrap { width: 100%; display: none; margin-top: 20px; }
+        .loading-bg { width: 100%; height: 4px; background: #222; border-radius: 2px; }
         .loading-bar { height: 100%; width: 0%; background: #ffcc00; transition: width 0.2s; box-shadow: 0 0 10px #ffcc00; }
-        .loading-text { font-size: 10px; color: #ffcc00; text-align: center; margin-top: 5px; display: none; }
+        .loading-text { font-size: 10px; color: #ffcc00; margin-top: 8px; text-align: center; opacity: 0.8; }
 
-        /* --- HUD --- */
+        /* --- 3. IN-GAME HUD --- */
         #ui-layer { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
 
         .hud-top {
-            position: absolute; top: 20px; width: 100%; display: flex; justify-content: center; gap: 40px; align-items: flex-end;
+            position: absolute; top: 20px; left: 0; width: 100%;
+            display: flex; justify-content: center; align-items: flex-end; gap: 40px;
         }
         
         .stat-card {
-            background: rgba(0,0,0,0.5); padding: 5px 20px; 
-            border: 1px solid #333; border-bottom: 4px solid #ffcc00;
-            transform: skewX(-10deg);
+            background: rgba(0,0,0,0.7); padding: 10px 30px; 
+            border: 1px solid #333; border-bottom: 3px solid #ffcc00;
+            transform: skewX(-15deg);
+            text-align: center; min-width: 110px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
         }
-        .stat-val { font-size: 24px; font-weight: bold; color: white; transform: skewX(10deg); }
-        .stat-label { font-size: 10px; color: #aaa; letter-spacing: 1px; transform: skewX(10deg); }
+        .stat-content { transform: skewX(15deg); }
+        
+        .stat-val { font-size: 28px; font-weight: bold; color: white; display: block; line-height: 1; }
+        .stat-label { font-size: 10px; color: #888; letter-spacing: 2px; margin-top: 2px; }
 
-        #timer-box { font-size: 40px; color: #ffcc00; text-shadow: 0 0 20px #ffcc00; font-weight: bold; }
-        .timer-panic { color: #ff3333 !important; animation: shake 0.2s infinite; font-size: 50px !important; }
+        #timer-box { 
+            font-size: 48px; color: #ffcc00; text-shadow: 0 0 30px rgba(255, 204, 0, 0.5); 
+            font-weight: 900; min-width: 160px; text-align: center; letter-spacing: 2px;
+        }
+        .timer-panic { color: #ff3333 !important; text-shadow: 0 0 30px #ff0000 !important; animation: shake 0.2s infinite; }
 
         #waiting-msg {
-            position: absolute; top: 25%; width: 100%; text-align: center;
-            font-size: 30px; color: rgba(255,255,255,0.3); text-transform: uppercase;
-            display: none; letter-spacing: 5px;
+            position: absolute; top: 30%; width: 100%; text-align: center;
+            font-size: 32px; color: rgba(255,255,255,0.2); letter-spacing: 6px; font-weight: bold;
+            display: none; text-transform: uppercase;
         }
 
-        /* --- ANIMATIONS --- */
+        /* --- 4. EFFECTS --- */
         @keyframes float { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
-        @keyframes shake { 0% { transform: translate(1px, 1px); } 50% { transform: translate(-1px, -2px); } 100% { transform: translate(1px, -1px); } }
+        @keyframes shake { 0% { transform: translate(2px, 2px); } 50% { transform: translate(-2px, -2px); } 100% { transform: translate(0, 0); } }
 
         canvas { display: block; }
     </style>
@@ -115,17 +134,17 @@
         <div class="logo">HammerCurs.io</div>
         
         <div class="input-box">
-            <input type="text" id="nickname" placeholder="ENTER NICKNAME" maxlength="12">
+            <input type="text" id="nickname" placeholder="CODENAME" maxlength="12">
             
-            <button class="play-btn" onclick="startSequence()">PLAY</button>
+            <button class="play-btn" onclick="startSequence()">ENTER ARENA</button>
             
             <div class="online-status">
-                <div class="dot"></div> <span id="online-count">1,204</span> ONLINE
+                <div class="dot"></div> <span id="online-count">1,240</span> OPERATIVES
             </div>
 
-            <div>
-                <div class="loading-container"><div class="loading-bar"></div></div>
-                <div class="loading-text">CONNECTING TO SERVER...</div>
+            <div class="loading-wrap">
+                <div class="loading-bg"><div class="loading-bar"></div></div>
+                <div class="loading-text">ESTABLISHING UPLINK...</div>
             </div>
         </div>
     </div>
@@ -133,25 +152,29 @@
     <div id="ui-layer">
         <div class="hud-top">
             <div class="stat-card">
-                <div class="stat-val" id="ui-score">0</div>
-                <div class="stat-label">SCORE</div>
+                <div class="stat-content">
+                    <span class="stat-val" id="ui-score">0</span>
+                    <span class="stat-label">SCORE</span>
+                </div>
             </div>
             
-            <div id="timer-box">WAITING</div>
+            <div id="timer-box">SCANNING</div>
             
             <div class="stat-card">
-                <div class="stat-val" id="ui-kills">0</div>
-                <div class="stat-label">KILLS</div>
+                <div class="stat-content">
+                    <span class="stat-val" id="ui-kills">0</span>
+                    <span class="stat-label">KILLS</span>
+                </div>
             </div>
         </div>
-        <div id="waiting-msg">SEARCHING FOR OPPONENTS...</div>
+        <div id="waiting-msg">SEARCHING FOR TARGETS...</div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
 
     <script>
         /* ===========================================
-           1. SECURE CONFIG
+           1. SECURE ENGINE (Keys)
            =========================================== */
         const _k = {
             a: "QUl6YVN5QV80a1pkLUFTRVhBQXEtR2NrYzJqeTZsaWpQTFF6S20w",
@@ -173,7 +196,7 @@
         const auth = firebase.auth();
 
         /* ===========================================
-           2. MENU VISUALS (Gold Particles)
+           2. MENU PARTICLES (Visual Polish)
            =========================================== */
         const bgCv = document.getElementById('bg-canvas');
         const bgCtx = bgCv.getContext('2d');
@@ -182,11 +205,11 @@
         function initParticles() {
             bgCv.width = window.innerWidth;
             bgCv.height = window.innerHeight;
-            for(let i=0; i<60; i++) {
+            for(let i=0; i<70; i++) {
                 particles.push({
                     x: Math.random()*bgCv.width, y: Math.random()*bgCv.height,
-                    vx: (Math.random()-0.5), vy: (Math.random()-0.5),
-                    size: Math.random()*3
+                    vx: (Math.random()-0.5)*0.5, vy: (Math.random()-0.5)*0.5,
+                    size: Math.random()*2.5
                 });
             }
             animateBG();
@@ -199,21 +222,21 @@
                 if(p.x<0) p.x=bgCv.width; if(p.x>bgCv.width) p.x=0;
                 if(p.y<0) p.y=bgCv.height; if(p.y>bgCv.height) p.y=0;
                 bgCtx.beginPath(); bgCtx.arc(p.x, p.y, p.size, 0, Math.PI*2); 
-                bgCtx.fill();
+                bgCtx.globalAlpha = 0.4; bgCtx.fill(); bgCtx.globalAlpha = 1;
             });
             requestAnimationFrame(animateBG);
         }
         initParticles();
 
-        // Fake Online Counter
-        let count = 1204;
+        // Online Counter Logic
+        let count = 1240;
         setInterval(() => {
-            count += Math.floor(Math.random()*5)-2;
+            count += Math.floor(Math.random()*7)-3;
             document.getElementById('online-count').innerText = count.toLocaleString();
-        }, 3000);
+        }, 2000);
 
         /* ===========================================
-           3. MATCHMAKING
+           3. AUTO-MATCHMAKING
            =========================================== */
         const ARENAS = ['arena_1', 'arena_2', 'arena_3', 'arena_4', 'arena_5'];
         let selectedRoom = null;
@@ -223,22 +246,21 @@
             const nickInput = document.getElementById('nickname');
             myNick = nickInput.value.trim();
             if (myNick.length < 3) {
-                nickInput.style.borderBottom = "2px solid red";
+                nickInput.style.borderBottom = "2px solid #ff3333";
                 return;
             }
 
-            // UI Anim
+            // Animation Sequence
             document.querySelector('.play-btn').style.display = 'none';
-            document.querySelector('.loading-container').style.display = 'block';
-            document.querySelector('.loading-text').style.display = 'block';
+            document.querySelector('.loading-wrap').style.display = 'block';
 
             let prog = 0;
             let inv = setInterval(() => {
-                prog += Math.random()*15;
+                prog += Math.random()*8 + 2;
                 if(prog>100) prog=100;
                 document.querySelector('.loading-bar').style.width = prog + "%";
                 if(prog===100) { clearInterval(inv); findMatch(); }
-            }, 100);
+            }, 50);
         }
 
         async function findMatch() {
@@ -254,16 +276,20 @@
         }
 
         /* ===========================================
-           4. GAME ENGINE
+           4. GAME LOGIC (PHYSICS & NETWORK)
            =========================================== */
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        
         let myId, gameActive = false;
         let me = { x: 0, y: 0, angle: 0, isHunter: false };
         let players = {}, coins = [];
         let cam = { x: 0, y: 0 }, mouse = { x: 0, y: 0 };
-        const MAP = 3000;
+        
+        // Settings
+        const MAP_SIZE = 3000;
         let hammerInertia = 0;
+        let shake = 0; // Screen shake value
 
         auth.onAuthStateChanged(user => {
             if (user && selectedRoom && !gameActive) {
@@ -279,15 +305,19 @@
             gameActive = true;
             resize();
 
-            me.x = Math.random() * MAP;
-            me.y = Math.random() * MAP;
+            // Spawn
+            me.x = Math.random() * MAP_SIZE;
+            me.y = Math.random() * MAP_SIZE;
 
             db.ref(`rooms/${selectedRoom}/players/${myId}`).set({
                 x: me.x, y: me.y, pts: 0, kills: 0, isHunter: false, nick: myNick
             });
 
+            // Listeners
             db.ref(`rooms/${selectedRoom}/players`).on('value', s => {
                 players = s.val() || {};
+                
+                // Update "Waiting" text
                 const pCount = Object.keys(players).length;
                 const wm = document.getElementById('waiting-msg');
                 if(pCount < 2) { wm.style.display = 'block'; wm.innerText = "WAITING FOR OPPONENTS..."; }
@@ -307,7 +337,7 @@
             });
 
             requestAnimationFrame(render);
-            setInterval(netSync, 70);
+            setInterval(netSync, 70); // 15 tickrate
             startTimer();
         }
 
@@ -319,75 +349,113 @@
         }
 
         /* ===========================================
-           5. RENDER
+           5. RENDER LOOP (THE REALISM)
            =========================================== */
         function render() {
             if (!gameActive) return;
 
+            // 1. PHYSICS
             let dx = mouse.x - canvas.width/2;
             let dy = mouse.y - canvas.height/2;
             let dist = Math.hypot(dx, dy);
-            let speed = 7;
+            let speed = 7.5; // Slightly faster for fun
             let vx = 0, vy = 0;
 
-            if (dist > 20) {
+            if (dist > 15) {
                 vx = (dx/dist)*speed; vy = (dy/dist)*speed;
                 me.x += vx; me.y += vy;
             }
-            me.x = Math.max(0, Math.min(MAP, me.x));
-            me.y = Math.max(0, Math.min(MAP, me.y));
-            cam.x = me.x - canvas.width/2;
-            cam.y = me.y - canvas.height/2;
-
-            let iT = (Math.abs(vx) + Math.abs(vy)) * 0.03;
-            hammerInertia += (iT - hammerInertia) * 0.1;
-            me.angle += (0.15 + hammerInertia);
-
-            // BG
-            ctx.fillStyle = '#111'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // Borders
+            me.x = Math.max(0, Math.min(MAP_SIZE, me.x));
+            me.y = Math.max(0, Math.min(MAP_SIZE, me.y));
             
-            // Grid
-            ctx.lineWidth = 2; ctx.strokeStyle = '#222'; ctx.beginPath();
-            for(let x=-cam.x%100; x<canvas.width; x+=100){ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);}
-            for(let y=-cam.y%100; y<canvas.height; y+=100){ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);}
+            // 2. CAMERA LERP (Smooth follow)
+            let targetX = me.x - canvas.width/2;
+            let targetY = me.y - canvas.height/2;
+            cam.x += (targetX - cam.x) * 0.1; 
+            cam.y += (targetY - cam.y) * 0.1;
+
+            // Screen Shake
+            let sx = (Math.random() - 0.5) * shake;
+            let sy = (Math.random() - 0.5) * shake;
+            if(shake > 0) shake *= 0.9;
+
+            // 3. HAMMER PHYSICS (Inertia)
+            let movementForce = (Math.abs(vx) + Math.abs(vy)) * 0.03;
+            hammerInertia += (movementForce - hammerInertia) * 0.08;
+            me.angle += (0.12 + hammerInertia);
+
+            // 4. DRAWING
+            ctx.fillStyle = '#0a0a0a'; 
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.save();
+            ctx.translate(-cam.x + sx, -cam.y + sy);
+
+            // -- Grid Floor --
+            ctx.lineWidth = 2; ctx.strokeStyle = '#1a1a1a'; ctx.beginPath();
+            for(let x = Math.floor(cam.x/100)*100; x < cam.x + canvas.width; x+=100){
+                ctx.moveTo(x, cam.y); ctx.lineTo(x, cam.y + canvas.height);
+            }
+            for(let y = Math.floor(cam.y/100)*100; y < cam.y + canvas.height; y+=100){
+                ctx.moveTo(cam.x, y); ctx.lineTo(cam.x + canvas.width, y);
+            }
             ctx.stroke();
 
-            ctx.save(); ctx.translate(-cam.x, -cam.y);
+            // -- Map Borders --
+            ctx.strokeStyle = '#ffcc00'; ctx.lineWidth = 10;
+            ctx.strokeRect(0, 0, MAP_SIZE, MAP_SIZE);
 
-            // Coins
+            // -- Coins --
             ctx.fillStyle = '#ffcc00'; ctx.shadowBlur = 15; ctx.shadowColor = '#ffcc00';
             coins.forEach((c, i) => {
                 if(!c) return;
-                ctx.beginPath(); ctx.arc(c.x, c.y, 8, 0, Math.PI*2); ctx.fill();
-                if (Math.hypot(me.x-c.x, me.y-c.y) < 30) takeCoin(i);
+                let pulse = Math.sin(Date.now()/200)*2;
+                ctx.beginPath(); ctx.arc(c.x, c.y, 8 + pulse, 0, Math.PI*2); ctx.fill();
+                // Collision
+                if (Math.hypot(me.x-c.x, me.y-c.y) < 35) takeCoin(i);
             });
             ctx.shadowBlur = 0;
 
-            // Players
+            // -- Players --
             for(let pid in players) {
                 let p = players[pid];
                 let isMe = pid === myId;
                 let ang = isMe ? me.angle : p.angle;
 
+                // Glow
+                ctx.shadowBlur = p.isHunter ? 30 : (isMe ? 20 : 0);
+                ctx.shadowColor = p.isHunter ? '#ff3333' : '#00aaff';
+                
+                // Body
                 ctx.beginPath(); ctx.arc(p.x, p.y, 25, 0, Math.PI*2);
-                ctx.fillStyle = p.isHunter ? '#ff3333' : (isMe ? '#0074d9' : '#fff');
-                if(p.isHunter) { ctx.shadowBlur = 30; ctx.shadowColor = 'red'; }
+                ctx.fillStyle = p.isHunter ? '#ff3333' : (isMe ? '#00aaff' : '#fff');
                 ctx.fill(); ctx.shadowBlur = 0;
 
-                ctx.fillStyle = '#fff'; ctx.font = '12px Orbitron'; ctx.textAlign = 'center';
-                ctx.fillText(p.nick, p.x, p.y - 40);
+                // Name
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 12px Orbitron'; ctx.textAlign = 'center';
+                ctx.fillText(p.nick, p.x, p.y - 45);
 
+                // HAMMER
                 if(p.isHunter) {
-                    let hx = p.x + Math.cos(ang)*90;
-                    let hy = p.y + Math.sin(ang)*90;
+                    let hLen = 90;
+                    let hx = p.x + Math.cos(ang)*hLen;
+                    let hy = p.y + Math.sin(ang)*hLen;
+
+                    // Handle
                     ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(hx, hy);
-                    ctx.lineWidth = 8; ctx.strokeStyle = '#333'; ctx.stroke();
+                    ctx.lineWidth = 8; ctx.strokeStyle = '#444'; ctx.stroke();
                     
+                    // Head
                     ctx.save(); ctx.translate(hx, hy); ctx.rotate(ang);
-                    ctx.fillStyle = '#888'; ctx.fillRect(-15,-25,50,50);
-                    ctx.fillStyle = '#ffcc00'; ctx.fillRect(-5,-15,10,30);
+                    // Metal Box
+                    ctx.fillStyle = '#666'; ctx.fillRect(-15,-25,50,50);
+                    // Gold Core
+                    ctx.fillStyle = '#ffcc00'; ctx.shadowBlur=20; ctx.shadowColor='#ffcc00';
+                    ctx.fillRect(-5,-15,10,30);
                     ctx.restore();
 
+                    // Collision (Only I check my hits)
                     if(isMe) {
                         for(let eid in players) {
                             if(eid !== myId && Math.hypot(hx-players[eid].x, hy-players[eid].y) < 60) smash(eid);
@@ -400,7 +468,7 @@
         }
 
         /* ===========================================
-           6. LOGIC
+           6. EVENTS & HELPERS
            =========================================== */
         function takeCoin(i) {
             delete coins[i];
@@ -409,6 +477,7 @@
         }
 
         function smash(eid) {
+            shake = 20; // Trigger screen shake
             db.ref(`players/${myId}/pts`).transaction(v => (v||0)+50);
             db.ref(`players/${myId}/kills`).transaction(v => (v||0)+1);
             db.ref(`players/${eid}/pts`).transaction(v => Math.max(0,(v||0)-300));
@@ -423,7 +492,7 @@
 
         function spawnCoins() {
             let nc = {};
-            for(let i=0; i<50; i++) nc[i] = { x: Math.random()*MAP, y: Math.random()*MAP };
+            for(let i=0; i<50; i++) nc[i] = { x: Math.random()*MAP_SIZE, y: Math.random()*MAP_SIZE };
             db.ref(`rooms/${selectedRoom}/coins`).update(nc);
         }
 
@@ -446,6 +515,7 @@
         window.onmousemove = e => { mouse.x = e.clientX; mouse.y = e.clientY; };
         window.onresize = () => { canvas.width=window.innerWidth; canvas.height=window.innerHeight; };
 
+        // Auto-assign Hunter to first player
         setTimeout(() => {
             db.ref(`rooms/${selectedRoom}/players`).once('value', s => {
                 let d = s.val();
