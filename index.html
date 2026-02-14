@@ -10,15 +10,12 @@
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
 
     <style>
-        /* --- VISUAL STYLE (GOLD & DARK) --- */
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
         * { box-sizing: border-box; outline: none; user-select: none; }
         body { margin: 0; overflow: hidden; background: #050505; font-family: 'Orbitron', sans-serif; color: white; }
 
-        /* Background */
         #bg-canvas { position: absolute; top: 0; left: 0; z-index: 1; opacity: 0.4; pointer-events: none; }
         
-        /* Lobby */
         #lobby-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
@@ -46,15 +43,12 @@
 
         .play-btn {
             background: linear-gradient(135deg, #ffcc00, #ff9900); color: #000; border: none; width: 100%; padding: 20px;
-            font-size: 24px; font-weight: 900; cursor: pointer; letter-spacing: 2px;
+            font-size: 26px; font-weight: 900; cursor: pointer; letter-spacing: 2px;
             clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
             transition: 0.2s;
         }
         .play-btn:hover { transform: scale(1.02); filter: brightness(1.2); }
         
-        .status-text { margin-top: 20px; font-size: 11px; color: #666; letter-spacing: 1px; }
-
-        /* HUD */
         #ui-layer { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
         .hud-top { position: absolute; top: 20px; width: 100%; display: flex; justify-content: center; align-items: flex-end; gap: 50px; }
         .stat-card {
@@ -63,34 +57,25 @@
         }
         .stat-content { transform: skewX(15deg); }
         .stat-val { font-size: 28px; font-weight: bold; color: white; display: block; }
-        .stat-lbl { font-size: 10px; color: #ffcc00; letter-spacing: 2px; }
         #timer-box { font-size: 56px; color: #ffcc00; font-weight: 900; text-shadow: 0 0 20px rgba(255,204,0,0.6); min-width: 180px; text-align: center; }
 
-        /* Leaderboard */
         #leaderboard {
             position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.7); 
             padding: 15px; border-radius: 8px; border: 1px solid #333; min-width: 250px;
         }
-        #leaderboard h3 { margin: 0 0 10px 0; font-size: 14px; color: #888; text-align: center; letter-spacing: 2px; border-bottom: 1px solid #444; padding-bottom: 5px; }
         .lb-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 5px; }
-        .lb-name { color: #fff; }
         .lb-score { color: #ffcc00; font-weight: bold; }
-        .lb-me { color: #00eaff !important; text-shadow: 0 0 10px #00eaff; }
 
         #center-msg {
             position: absolute; top: 30%; width: 100%; text-align: center;
             font-size: 32px; color: rgba(255,255,255,0.8); letter-spacing: 4px; text-shadow: 0 0 20px #000;
         }
 
-        /* Loading Overlay */
         #loading-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:30; display:none; justify-content:center; align-items:center; flex-direction:column; }
         .spinner { width: 50px; height: 50px; border: 5px solid #333; border-top-color: #ffcc00; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes float { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-15px); } }
-        @keyframes panic { 0%, 100% { transform: scale(1); color: #ffcc00; } 50% { transform: scale(1.1); color: #ff3333; } }
-        .timer-panic { animation: panic 0.5s infinite; }
-
         canvas { display: block; }
     </style>
 </head>
@@ -101,9 +86,9 @@
     <div id="lobby-screen">
         <div class="logo">HammerCurs.io</div>
         <div class="input-box">
-            <input type="text" id="nickname" placeholder="ENTER AGENT NAME" maxlength="12">
+            <input type="text" id="nickname" placeholder="AGENT NAME" maxlength="12">
             <button class="play-btn" onclick="startMatchmaking()">BATTLE START</button>
-            <div class="status-text">TOTAL ONLINE: <span id="total-online">...</span></div>
+            <div class="status-text" style="color:#666; margin-top:15px;">ONLINE: <span id="total-online">0</span></div>
         </div>
     </div>
 
@@ -114,470 +99,227 @@
 
     <div id="ui-layer">
         <div class="hud-top">
-            <div class="stat-card"><div class="stat-content"><span class="stat-val" id="ui-score">0</span><span class="stat-lbl">SCORE</span></div></div>
+            <div class="stat-card"><div class="stat-content"><span class="stat-val" id="ui-score">0</span><span style="font-size:10px; color:#ffcc00;">SCORE</span></div></div>
             <div id="timer-box">WAIT</div>
-            <div class="stat-card"><div class="stat-content"><span class="stat-val" id="ui-kills">0</span><span class="stat-lbl">KILLS</span></div></div>
+            <div class="stat-card"><div class="stat-content"><span class="stat-val" id="ui-kills">0</span><span style="font-size:10px; color:#ffcc00;">KILLS</span></div></div>
         </div>
-        
-        <div id="leaderboard">
-            <h3>TOP AGENTS</h3>
-            <div id="lb-list"></div>
-        </div>
-
+        <div id="leaderboard"><h3>TOP AGENTS</h3><div id="lb-list"></div></div>
         <div id="center-msg">WAITING FOR PLAYERS...</div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
 
     <script>
-        /* =================================================================
-           1. GAME CONFIGURATION (НАСТРОЙКИ ИГРЫ) - CHANGE THIS!
-           ================================================================= */
+        /* ================= CONFIG ================= */
         const CONFIG = {
-            MAP_SIZE: 3000,         // Размер карты (3000px)
-            PLAYER_SPEED: 7,        // Скорость игрока
-            HAMMER_LENGTH: 90,      // Длина молота
-            HAMMER_SIZE: 40,        // Размер бойка молота
-            
-            MIN_PLAYERS_TO_START: 2, // Сколько нужно людей для старта таймера
-            MAX_PLAYERS_PER_ROOM: 15, // Лимит игроков в одной комнате
-            
-            TIME_COUNTDOWN: 10,     // Время ожидания перед боем (сек)
-            TIME_BATTLE: 300,       // Время самой битвы (5 мин = 300 сек)
-            
-            POINTS_COIN: 5,         // Очки за монету
-            POINTS_KILL: 50,        // Очки за убийство
-            POINTS_SURVIVE: 400,    // Бонус за победу/выживание
-            PENALTY_DEATH: 300,     // Штраф за смерть
-            
-            INTERPOLATION: 0.15     // Плавность движения (0.1 - очень плавно, 0.5 - резко)
+            MAP_SIZE: 3000,
+            PLAYER_SPEED: 7,
+            MIN_PLAYERS: 2, // Ставь 1 для теста
+            BATTLE_TIME: 300,
+            HUNTER_TIME_LIMIT: 30, // 30 секунд на молот!
+            INTERPOLATION: 0.15
         };
 
-        /* =================================================================
-           2. SECURE KEYS (Base64)
-           ================================================================= */
         const _k = {
             a: "QUl6YVN5QV80a1pkLUFTRVhBQXEtR2NrYzJqeTZsaWpQTFF6S20w",
             b: "aGFtbWVyY3Vycy1pby5maXJlYmFzZWFwcC5jb20=",
             c: "aHR0cHM6Ly9oYW1tZXJjdXJzLWlvLWRlZmF1bHQtcnRkYi5ldXJvcGUtd2VzdDEuZmlyZWJhc2VkYXRhYmFzZS5hcHA=",
-            d: "aGFtbWVyY3Vycy1pbw==", e: "aGFtbWVyY3Vycy1pby5maXJlYmFzZXN0b3JhZ2UuYXBw",
-            f: "MTA1MTg5OTk2MDk3Mw==", g: "MToxMDUxODk5OTYwOTczOndlYjoxNDIzNTg1YTFhMjFkN2ZmMTMwY2M0"
+            d: "aGFtbWVyY3Vycy1pbw==", 
+            e: "aGFtbWVyY3Vycy1pby5maXJlYmFzZXN0b3JhZ2UuYXBw",
+            f: "MTA1MTg5OTk2MDk3Mw==", 
+            g: "MToxMDUxODk5OTYwOTczOndlYjoxNDIzNTg1YTFhMjFkN2ZmMTMwY2M0"
         };
         const _d = s => atob(s);
-        
-        firebase.initializeApp({
-            apiKey: _d(_k.a), authDomain: _d(_k.b), databaseURL: _d(_k.c),
-            projectId: _d(_k.d), storageBucket: _d(_k.e), messagingSenderId: _d(_k.f), appId: _d(_k.g)
-        });
+        firebase.initializeApp({ apiKey: _d(_k.a), authDomain: _d(_k.b), databaseURL: _d(_k.c), projectId: _d(_k.d), storageBucket: _d(_k.e), messagingSenderId: _d(_k.f), appId: _d(_k.g) });
         const db = firebase.database();
         const auth = firebase.auth();
 
-        /* =================================================================
-           3. VARIABLES & STATE
-           ================================================================= */
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        
-        let myId = null, myNick = "Player";
-        let selectedRoom = null;
-        let gameActive = false;
-        let battleState = "waiting"; // waiting, countdown, battle
-        
-        let players = {}; 
-        let smoothPlayers = {}; // For interpolation
-        let coins = [];
-        let particles = [];
-        
-        let me = { x: 0, y: 0, angle: 0 };
-        let cam = { x: 0, y: 0 };
-        let mouse = { x: 0, y: 0 };
-        let hammerInertia = 0;
-        let shake = 0;
+        let myId, myNick, selectedRoom, gameActive = false, battleState = "waiting";
+        let players = {}, smoothPlayers = {}, coins = [], mouse = {x:0, y:0}, me = {x:0, y:0, angle:0}, cam = {x:0, y:0}, shake=0;
 
-        /* =================================================================
-           4. VISUALS (MENU BACKGROUND)
-           ================================================================= */
-        const bgCv = document.getElementById('bg-canvas');
-        const bgCtx = bgCv.getContext('2d');
-        let bgParts = [];
+        // Sync Online
+        db.ref('rooms').on('value', s => {
+            let t = 0; let d = s.val();
+            if(d) Object.values(d).forEach(r => { if(r.players) t += Object.keys(r.players).length; });
+            document.getElementById('total-online').innerText = t;
+        });
 
-        function initMenuBG() {
-            bgCv.width = window.innerWidth; bgCv.height = window.innerHeight;
-            for(let i=0; i<80; i++) bgParts.push({
-                x: Math.random()*bgCv.width, y: Math.random()*bgCv.height,
-                vx: (Math.random()-0.5)*0.5, vy: (Math.random()-0.5)*0.5, s: Math.random()*2
-            });
-            loopMenuBG();
-        }
-        function loopMenuBG() {
-            bgCtx.clearRect(0,0,bgCv.width,bgCv.height); bgCtx.fillStyle = '#ffcc00';
-            bgParts.forEach(p => {
-                p.x+=p.vx; p.y+=p.vy; if(p.x<0)p.x=bgCv.width; if(p.y<0)p.y=bgCv.height;
-                bgCtx.globalAlpha=0.3; bgCtx.beginPath(); bgCtx.arc(p.x,p.y,p.s,0,Math.PI*2); bgCtx.fill();
-            });
-            requestAnimationFrame(loopMenuBG);
-        }
-        initMenuBG();
-
-        function syncTotalOnline() {
-            db.ref('rooms').on('value', s => {
-                let total = 0; let d = s.val();
-                if(d) Object.values(d).forEach(r => { if(r.players) total += Object.keys(r.players).length; });
-                document.getElementById('total-online').innerText = total;
-            });
-        }
-        syncTotalOnline();
-
-        /* =================================================================
-           5. MATCHMAKING (SMART LOGIC)
-           ================================================================= */
         async function startMatchmaking() {
-            myNick = document.getElementById('nickname').value.trim();
-            if(myNick.length < 3) return alert("NAME MUST BE AT LEAST 3 CHARS!");
-
+            myNick = document.getElementById('nickname').value.trim() || "Agent";
             document.getElementById('loading-overlay').style.display = 'flex';
-            
-            let roomIndex = 1;
-            let found = false;
-            
+            let i = 1; let found = false;
             while(!found) {
-                let path = `arena_${roomIndex}`;
+                let path = `arena_${i}`;
                 const snap = await db.ref(`rooms/${path}`).get();
-                const data = snap.val();
-                
-                let pCount = 0;
-                let inProgress = false;
-                
-                if (data) {
-                    pCount = data.players ? Object.keys(data.players).length : 0;
-                    inProgress = data.battleStarted || false;
-                }
-
-                // Check Config Limit
-                if (!inProgress && pCount < CONFIG.MAX_PLAYERS_PER_ROOM) {
-                    selectedRoom = path;
-                    found = true;
-                } else {
-                    roomIndex++;
-                }
-                
-                if(roomIndex > 100) { alert("NO SERVERS AVAILABLE"); return; }
+                const d = snap.val();
+                if(!d || (!d.battleStarted && Object.keys(d.players||{}).length < 15)) { selectedRoom = path; found = true; }
+                else i++;
             }
-
-            document.getElementById('loading-text').innerText = `JOINING ${selectedRoom.toUpperCase()}...`;
-            
             auth.signInAnonymously().then(() => {
-                document.getElementById('loading-overlay').style.display = 'none';
-                document.getElementById('lobby-screen').style.display = 'none';
-                document.getElementById('ui-layer').style.display = 'block';
-                startGameSession();
+                document.getElementById('loading-overlay').style.display='none';
+                document.getElementById('lobby-screen').style.display='none';
+                document.getElementById('ui-layer').style.display='block';
+                startGame();
             });
         }
 
-        /* =================================================================
-           6. GAME SESSION (NETWORK & SYNC)
-           ================================================================= */
-        function startGameSession() {
+        function startGame() {
             myId = auth.currentUser.uid;
             gameActive = true;
             resize();
+            me.x = Math.random()*CONFIG.MAP_SIZE; me.y = Math.random()*CONFIG.MAP_SIZE;
+            const ref = db.ref(`rooms/${selectedRoom}/players/${myId}`);
+            ref.set({x:me.x, y:me.y, angle:0, pts:0, kills:0, nick:myNick, isHunter:false, hunterTimer: CONFIG.HUNTER_TIME_LIMIT});
+            ref.onDisconnect().remove();
 
-            // Spawn
-            me.x = Math.random() * CONFIG.MAP_SIZE;
-            me.y = Math.random() * CONFIG.MAP_SIZE;
-
-            const myRef = db.ref(`rooms/${selectedRoom}/players/${myId}`);
-            myRef.set({
-                x: me.x, y: me.y, angle: 0,
-                pts: 0, kills: 0, nick: myNick, 
-                isHunter: false
-            });
-            myRef.onDisconnect().remove();
-
-            // Listeners
             db.ref(`rooms/${selectedRoom}/players`).on('value', s => {
-                const serverPlayers = s.val() || {};
-                
-                if (!serverPlayers[myId] && gameActive) {
-                    handleDeath();
-                    return;
-                }
-
-                players = serverPlayers;
-                
-                if (players[myId]) {
-                    document.getElementById('ui-score').innerText = players[myId].pts;
-                    document.getElementById('ui-kills').innerText = players[myId].kills;
-                    me.isHunter = players[myId].isHunter;
-                }
-
+                players = s.val() || {};
+                if(!players[myId]) location.reload();
+                document.getElementById('ui-score').innerText = players[myId].pts;
+                document.getElementById('ui-kills').innerText = players[myId].kills;
+                me.isHunter = players[myId].isHunter;
                 updateLeaderboard();
-                checkRoomState();
-            });
-
-            db.ref(`rooms/${selectedRoom}/coins`).on('value', s => {
-                coins = s.val() || [];
-                if (coins.length < 50 && battleState === 'battle' && isHost()) {
-                    spawnCoins();
-                }
+                if(isHost()) checkLogic();
             });
 
             db.ref(`rooms/${selectedRoom}`).on('value', s => {
                 const r = s.val() || {};
-                const timerEl = document.getElementById('timer-box');
-                const msgEl = document.getElementById('center-msg');
-
-                if (r.timer) {
-                    timerEl.innerText = r.timer;
-                    if (r.battleStarted && r.timer.startsWith("00:0")) timerEl.classList.add('timer-panic');
-                    else timerEl.classList.remove('timer-panic');
-                }
-
-                if (r.battleStarted) {
-                    battleState = 'battle';
-                    msgEl.style.display = 'none';
-                } else if (r.countdownStarted) {
-                    battleState = 'countdown';
-                    msgEl.innerText = "PREPARE FOR BATTLE!";
-                    msgEl.style.display = 'block';
-                } else {
-                    battleState = 'waiting';
-                    let count = players ? Object.keys(players).length : 0;
-                    msgEl.innerHTML = `WAITING FOR PLAYERS... <br><span style="color:#ffcc00; font-size:40px;">${count}/${CONFIG.MIN_PLAYERS_TO_START}</span>`;
-                    msgEl.style.display = 'block';
-                    timerEl.innerText = "HOLD";
-                }
+                document.getElementById('timer-box').innerText = r.timer || "HOLD";
+                battleState = r.battleStarted ? "battle" : (r.countdownStarted ? "countdown" : "waiting");
+                let msg = document.getElementById('center-msg');
+                if(battleState === "waiting") msg.innerHTML = `WAITING... ${Object.keys(players).length}/${CONFIG.MIN_PLAYERS}`;
+                else if(battleState === "countdown") msg.innerText = "PREPARE!";
+                else msg.style.display = 'none';
             });
 
             window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
-            requestAnimationFrame(gameLoop);
-            setInterval(networkLoop, 70);
+            setInterval(() => { if(gameActive) db.ref(`rooms/${selectedRoom}/players/${myId}`).update({x:me.x, y:me.y, angle:me.angle}); }, 70);
+            requestAnimationFrame(loop);
         }
 
-        /* =================================================================
-           7. SERVER LOGIC (HOST SIMULATION)
-           ================================================================= */
-        function checkRoomState() {
-            if (!isHost()) return;
+        function isHost() { return Object.keys(players)[0] === myId; }
 
+        function checkLogic() {
             const pCount = Object.keys(players).length;
-            
-            // Check Config for Start
-            if (battleState === 'waiting' && pCount >= CONFIG.MIN_PLAYERS_TO_START) {
-                db.ref(`rooms/${selectedRoom}`).update({ countdownStarted: true });
-                runTimer(CONFIG.TIME_COUNTDOWN, () => {
-                    db.ref(`rooms/${selectedRoom}`).update({ battleStarted: true, countdownStarted: false });
-                    assignFirstHunter();
-                    runTimer(CONFIG.TIME_BATTLE, () => {
-                        finishGame();
-                    });
+            if(battleState === 'waiting' && pCount >= CONFIG.MIN_PLAYERS) {
+                db.ref(`rooms/${selectedRoom}`).update({countdownStarted: true});
+                runTimer(10, () => {
+                    db.ref(`rooms/${selectedRoom}`).update({battleStarted: true, countdownStarted: false});
+                    assignHunter();
+                    runTimer(CONFIG.BATTLE_TIME, () => location.reload());
                 });
+            }
+            // Hunter timeout logic
+            for(let id in players) {
+                if(players[id].isHunter && players[id].hunterTimer <= 0) {
+                    transferHammer(id);
+                }
             }
         }
 
-        function runTimer(seconds, onComplete) {
-            let left = seconds;
+        function runTimer(sec, cb) {
+            let left = sec;
             let iv = setInterval(() => {
                 left--;
-                let m = Math.floor(left / 60);
-                let s = left % 60;
-                db.ref(`rooms/${selectedRoom}/timer`).set(`${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`);
-                
-                if (left <= 0) {
-                    clearInterval(iv);
-                    onComplete();
+                let m = Math.floor(left/60), s = left%60;
+                db.ref(`rooms/${selectedRoom}/timer`).set(`${m}:${s<10?'0'+s:s}`);
+                // Если сейчас идет битва, уменьшаем таймер хантера
+                if(battleState === "battle") {
+                    for(let id in players) {
+                        if(players[id].isHunter) {
+                            db.ref(`rooms/${selectedRoom}/players/${id}/hunterTimer`).transaction(t => (t||0)-1);
+                        }
+                    }
                 }
+                if(left <= 0) { clearInterval(iv); cb(); }
             }, 1000);
         }
 
-        function assignFirstHunter() {
+        function assignHunter() {
             const ids = Object.keys(players);
-            const luckyId = ids[Math.floor(Math.random() * ids.length)];
-            db.ref(`rooms/${selectedRoom}/players/${luckyId}`).update({ isHunter: true });
+            const lucky = ids[Math.floor(Math.random()*ids.length)];
+            db.ref(`rooms/${selectedRoom}/players/${lucky}`).update({isHunter: true, hunterTimer: CONFIG.HUNTER_TIME_LIMIT});
         }
 
-        function finishGame() {
-            // Victory Bonus
-            db.ref(`players/${myId}/pts`).transaction(p => (p||0) + CONFIG.POINTS_SURVIVE);
-            alert("TIME'S UP! SURVIVORS REWARDED.");
-            setTimeout(() => location.reload(), 3000);
-        }
-
-        /* =================================================================
-           8. RENDER LOOP & PHYSICS
-           ================================================================= */
-        function lerp(start, end, amt) { return (1 - amt) * start + amt * end; }
-
-        function networkLoop() {
-            if (!gameActive) return;
-            db.ref(`rooms/${selectedRoom}/players/${myId}`).update({
-                x: me.x, y: me.y, angle: me.angle
-            });
-        }
-
-        function gameLoop() {
-            if (!gameActive) return;
-
-            // Physics
-            let dx = mouse.x - canvas.width/2;
-            let dy = mouse.y - canvas.height/2;
-            let dist = Math.hypot(dx, dy);
-            
-            if (dist > 20) {
-                let vx = (dx / dist) * CONFIG.PLAYER_SPEED;
-                let vy = (dy / dist) * CONFIG.PLAYER_SPEED;
-                me.x += vx; me.y += vy;
+        function transferHammer(oldId) {
+            db.ref(`rooms/${selectedRoom}/players/${oldId}`).update({isHunter: false, hunterTimer: CONFIG.HUNTER_TIME_LIMIT});
+            const ids = Object.keys(players).filter(id => id !== oldId);
+            if(ids.length > 0) {
+                const next = ids[Math.floor(Math.random()*ids.length)];
+                db.ref(`rooms/${selectedRoom}/players/${next}`).update({isHunter: true, hunterTimer: CONFIG.HUNTER_TIME_LIMIT});
             }
+        }
+
+        function lerp(a, b, t) { return a + (b - a) * t; }
+
+        function loop() {
+            if(!gameActive) return;
+            let dx = mouse.x - canvas.width/2, dy = mouse.y - canvas.height/2;
+            let d = Math.hypot(dx, dy);
+            if(d > 20) { me.x += (dx/d)*CONFIG.PLAYER_SPEED; me.y += (dy/d)*CONFIG.PLAYER_SPEED; }
+            me.x = Math.max(0, Math.min(CONFIG.MAP_SIZE, me.x)); me.y = Math.max(0, Math.min(CONFIG.MAP_SIZE, me.y));
+            cam.x = lerp(cam.x, me.x - canvas.width/2, 0.1); cam.y = lerp(cam.y, me.y - canvas.height/2, 0.1);
+            if(shake > 0) shake *= 0.9; me.angle += 0.15;
+
+            ctx.fillStyle = '#050505'; ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.save(); ctx.translate(-cam.x + (Math.random()-0.5)*shake, -cam.y + (Math.random()-0.5)*shake);
             
-            me.x = Math.max(0, Math.min(CONFIG.MAP_SIZE, me.x));
-            me.y = Math.max(0, Math.min(CONFIG.MAP_SIZE, me.y));
-
-            cam.x = lerp(cam.x, me.x - canvas.width/2, 0.1);
-            cam.y = lerp(cam.y, me.y - canvas.height/2, 0.1);
-
-            if (shake > 0) shake *= 0.9;
-            let sx = (Math.random() - 0.5) * shake;
-            let sy = (Math.random() - 0.5) * shake;
-
-            let moveIntensity = (dist > 20) ? 1 : 0;
-            hammerInertia = lerp(hammerInertia, moveIntensity * 0.1, 0.05);
-            me.angle += (0.15 + hammerInertia);
-
-            // Drawing
-            ctx.fillStyle = '#050505'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.save();
-            ctx.translate(-cam.x + sx, -cam.y + sy);
-
             // Grid
-            ctx.strokeStyle = '#1a1a1a'; ctx.lineWidth = 2; ctx.beginPath();
-            for(let i=0; i<=CONFIG.MAP_SIZE; i+=100) { ctx.moveTo(i,0); ctx.lineTo(i,CONFIG.MAP_SIZE); ctx.moveTo(0,i); ctx.lineTo(CONFIG.MAP_SIZE,i); } ctx.stroke();
-            ctx.strokeStyle = '#ffcc00'; ctx.lineWidth = 10; ctx.strokeRect(0,0,CONFIG.MAP_SIZE,CONFIG.MAP_SIZE);
+            ctx.strokeStyle = '#111'; ctx.beginPath();
+            for(let i=0; i<=MAP_SIZE; i+=100){ctx.moveTo(i,0);ctx.lineTo(i,MAP_SIZE);ctx.moveTo(0,i);ctx.lineTo(MAP_SIZE,i);} ctx.stroke();
 
-            // Coins
-            coins.forEach((c, i) => {
-                if(!c) return;
-                ctx.fillStyle = '#ffcc00'; ctx.shadowBlur = 15; ctx.shadowColor = '#ffcc00';
-                ctx.beginPath(); ctx.arc(c.x, c.y, 8, 0, Math.PI*2); ctx.fill();
-                ctx.shadowBlur = 0;
-                
-                if (Math.hypot(me.x - c.x, me.y - c.y) < 35) {
-                    db.ref(`rooms/${selectedRoom}/coins/${i}`).remove();
-                    db.ref(`rooms/${selectedRoom}/players/${myId}/pts`).transaction(v => (v||0) + CONFIG.POINTS_COIN);
-                    createParticles(c.x, c.y, '#ffcc00');
-                }
-            });
-
-            // Players
-            for (let id in players) {
+            for(let id in players) {
                 let p = players[id];
-                
-                if (!smoothPlayers[id]) smoothPlayers[id] = { x: p.x, y: p.y, angle: p.angle };
-                let sp = smoothPlayers[id];
-                sp.x = lerp(sp.x, p.x, CONFIG.INTERPOLATION);
-                sp.y = lerp(sp.y, p.y, CONFIG.INTERPOLATION);
-                sp.angle = lerp(sp.angle, p.angle, 0.2);
+                if(!smoothPlayers[id]) smoothPlayers[id] = {x:p.x, y:p.y};
+                smoothPlayers[id].x = lerp(smoothPlayers[id].x, p.x, CONFIG.INTERPOLATION);
+                smoothPlayers[id].y = lerp(smoothPlayers[id].y, p.y, CONFIG.INTERPOLATION);
+                let rx = id===myId?me.x:smoothPlayers[id].x;
+                let ry = id===myId?me.y:smoothPlayers[id].y;
 
-                let drawX = (id === myId) ? me.x : sp.x;
-                let drawY = (id === myId) ? me.y : sp.y;
-                let drawAng = (id === myId) ? me.angle : p.angle;
+                ctx.fillStyle = id===myId?'#00eaff':(p.isHunter?'#ff3333':'#fff');
+                ctx.beginPath(); ctx.arc(rx, ry, 25, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle='#fff'; ctx.font="bold 12px Orbitron"; ctx.textAlign="center"; ctx.fillText(p.nick, rx, ry-45);
 
-                ctx.fillStyle = (id === myId) ? '#00eaff' : (p.isHunter ? '#ff3333' : '#fff');
-                ctx.shadowBlur = p.isHunter ? 30 : 15; ctx.shadowColor = ctx.fillStyle;
-                ctx.beginPath(); ctx.arc(drawX, drawY, 25, 0, Math.PI*2); ctx.fill();
-                ctx.shadowBlur = 0;
+                if(p.isHunter) {
+                    // Таймер над хантером
+                    ctx.fillStyle = '#ffcc00'; ctx.fillText(`TIME: ${p.hunterTimer}s`, rx, ry - 65);
+                    
+                    let da = id===myId?me.angle:p.angle;
+                    let hx = rx + Math.cos(da)*90, hy = ry + Math.sin(da)*90;
+                    
+                    // Эффект молота
+                    ctx.shadowBlur = 25; ctx.shadowColor = '#ffcc00';
+                    ctx.strokeStyle='#444'; ctx.lineWidth=8; ctx.beginPath(); ctx.moveTo(rx,ry); ctx.lineTo(hx,hy); ctx.stroke();
+                    ctx.fillStyle='#ffcc00'; ctx.fillRect(hx-20, hy-20, 40, 40);
+                    ctx.shadowBlur = 0;
 
-                ctx.fillStyle = '#fff'; ctx.font = "bold 12px Orbitron"; ctx.textAlign = "center";
-                ctx.fillText(p.nick, drawX, drawY - 45);
-
-                if (p.isHunter) {
-                    let hx = drawX + Math.cos(drawAng) * CONFIG.HAMMER_LENGTH;
-                    let hy = drawY + Math.sin(drawAng) * CONFIG.HAMMER_LENGTH;
-
-                    ctx.strokeStyle = '#444'; ctx.lineWidth = 8;
-                    ctx.beginPath(); ctx.moveTo(drawX, drawY); ctx.lineTo(hx, hy); ctx.stroke();
-
-                    ctx.save(); ctx.translate(hx, hy); ctx.rotate(drawAng);
-                    ctx.fillStyle = '#555'; ctx.fillRect(-15, -25, 50, 50);
-                    ctx.fillStyle = '#ffcc00'; ctx.shadowBlur = 20; ctx.shadowColor = '#ffcc00';
-                    ctx.fillRect(-5, -15, 10, 30);
-                    ctx.restore();
-
-                    if (id === myId) {
-                        for (let targetId in players) {
-                            if (targetId !== myId) {
-                                let t = smoothPlayers[targetId];
-                                if (t && Math.hypot(hx - t.x, hy - t.y) < 50) {
-                                    handleKill(targetId);
-                                }
+                    if(id===myId) {
+                        for(let t in players) {
+                            if(t!==myId && Math.hypot(hx-smoothPlayers[t].x, hy-smoothPlayers[t].y)<50) {
+                                shake=20; db.ref(`rooms/${selectedRoom}/players/${myId}/pts`).transaction(v=>(v||0)+50);
+                                db.ref(`rooms/${selectedRoom}/players/${myId}/kills`).transaction(v=>(v||0)+1);
+                                db.ref(`rooms/${selectedRoom}/players/${myId}/hunterTimer`).set(CONFIG.HUNTER_TIME_LIMIT); // Сброс таймера при килле!
+                                db.ref(`rooms/${selectedRoom}/players/${t}`).remove();
                             }
                         }
                     }
                 }
             }
-
-            updateParticles();
-            ctx.restore();
-            requestAnimationFrame(gameLoop);
-        }
-
-        /* =================================================================
-           9. HELPERS & UTILS
-           ================================================================= */
-        function handleKill(targetId) {
-            shake = 20;
-            createParticles(smoothPlayers[targetId].x, smoothPlayers[targetId].y, '#ff3333');
-            
-            db.ref(`rooms/${selectedRoom}/players/${myId}/pts`).transaction(v => (v||0) + CONFIG.POINTS_KILL);
-            db.ref(`rooms/${selectedRoom}/players/${myId}/kills`).transaction(v => (v||0)+1);
-            db.ref(`rooms/${selectedRoom}/players/${targetId}`).remove();
-        }
-
-        function handleDeath() {
-            gameActive = false;
-            alert(`ELIMINATED! -${CONFIG.PENALTY_DEATH} PTS`);
-            location.reload();
-        }
-
-        function isHost() { return Object.keys(players)[0] === myId; }
-
-        function spawnCoins() {
-            let nc = {};
-            for(let i=0; i<50; i++) nc[i] = { x: Math.random()*CONFIG.MAP_SIZE, y: Math.random()*CONFIG.MAP_SIZE };
-            db.ref(`rooms/${selectedRoom}/coins`).update(nc);
+            ctx.restore(); requestAnimationFrame(loop);
         }
 
         function updateLeaderboard() {
-            let sorted = Object.values(players).sort((a,b) => b.pts - a.pts).slice(0, 5);
-            let html = "";
-            sorted.forEach(p => {
-                let isMeClass = (p.nick === myNick) ? "lb-me" : "";
-                html += `<div class="lb-row"><span class="lb-name ${isMeClass}">${p.nick}</span><span class="lb-score">${p.pts}</span></div>`;
-            });
-            document.getElementById('lb-list').innerHTML = html;
+            let s = Object.values(players).sort((a,b)=>b.pts-a.pts).slice(0,5);
+            let h = ""; s.forEach(p => h+=`<div class="lb-row"><span>${p.nick}</span><span class="lb-score">${p.pts}</span></div>`);
+            document.getElementById('lb-list').innerHTML = h;
         }
-
-        function createParticles(x, y, color) {
-            for(let i=0; i<10; i++) {
-                particles.push({ x: x, y: y, vx: (Math.random()-0.5)*10, vy: (Math.random()-0.5)*10, life: 1.0, color: color });
-            }
-        }
-
-        function updateParticles() {
-            for(let i=particles.length-1; i>=0; i--) {
-                let p = particles[i];
-                p.x += p.vx; p.y += p.vy;
-                p.life -= 0.05;
-                ctx.globalAlpha = p.life;
-                ctx.fillStyle = p.color;
-                ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2); ctx.fill();
-                if(p.life <= 0) particles.splice(i, 1);
-            }
-            ctx.globalAlpha = 1;
-        }
-
         function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        window.addEventListener('resize', resize);
-
+        
+        // Debug Tools
+        window.dbg = {
+            beHunter: () => db.ref(`rooms/${selectedRoom}/players/${myId}`).update({isHunter: true, hunterTimer: 999}),
+            skipWait: () => db.ref(`rooms/${selectedRoom}`).update({countdownStarted: true, battleStarted: true})
+        };
     </script>
 </body>
 </html>
