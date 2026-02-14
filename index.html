@@ -3,458 +3,463 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HammerCurs.io - Curse of the Hammer</title>
+    <title>HammerCurs.io - Prime Arena</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
 
     <style>
-        body { margin: 0; overflow: hidden; background: #1a1a1a; font-family: 'Arial Black', sans-serif; color: white; user-select: none; }
+        /* --- CORE STYLES --- */
+        body { 
+            margin: 0; overflow: hidden; background: #0f0f0f; 
+            font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; 
+            color: white; user-select: none; 
+        }
         
-        /* LOBBY SCREEN */
+        /* --- LOBBY DESIGN (Curved & Modern) --- */
         #lobby-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); display: flex; flex-direction: column;
-            justify-content: center; align-items: center; z-index: 10;
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 100;
         }
-        
-        /* Logo Styling */
-        .logo-container { display: flex; align-items: center; margin-bottom: 20px; }
-        .logo-text { font-size: 60px; color: #ffcc00; text-shadow: 0 0 20px #ff6600; margin-left: 15px; }
-        .logo-svg { width: 60px; height: 60px; fill: #ffcc00; filter: drop-shadow(0 0 10px #ff6600); }
 
-        .io-btn {
-            background: #ffcc00; border: none; border-bottom: 8px solid #cc9900;
-            border-radius: 40px; padding: 20px 80px; font-size: 35px;
-            font-family: inherit; cursor: pointer; transition: 0.1s;
-            box-shadow: 0 10px 30px rgba(255, 204, 0, 0.3);
-            color: #222;
+        h1 {
+            font-weight: 800; font-size: 72px; letter-spacing: -2px;
+            background: linear-gradient(135deg, #ffcc00, #ff6600);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 40px;
         }
-        .io-btn:active { transform: translateY(8px); border-bottom: 0; }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 40px;
+            width: 400px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            display: flex; flex-direction: column; gap: 20px;
+        }
+
+        input {
+            background: rgba(0,0,0,0.3); border: 2px solid #333;
+            border-radius: 15px; padding: 15px 20px;
+            color: white; font-size: 18px; text-align: center;
+            outline: none; transition: 0.3s;
+        }
+        input:focus { border-color: #ffcc00; box-shadow: 0 0 15px rgba(255, 204, 0, 0.2); }
+
+        /* ROOM SELECTOR */
+        .room-list { display: flex; flex-direction: column; gap: 10px; }
+        .room-item {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px; padding: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer; transition: 0.2s; border: 1px solid transparent;
+        }
+        .room-item:hover { background: rgba(255,255,255,0.1); transform: scale(1.02); }
+        .room-item.selected { border-color: #ffcc00; background: rgba(255, 204, 0, 0.1); }
+
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 10px currentColor; }
         
-        /* GAME UI */
+        .play-btn {
+            background: linear-gradient(90deg, #ffcc00, #ff9900);
+            border: none; border-radius: 20px;
+            padding: 18px; font-size: 20px; font-weight: bold; color: #000;
+            cursor: pointer; transition: 0.2s; margin-top: 10px;
+        }
+        .play-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(255, 153, 0, 0.3); }
+        .play-btn:active { transform: scale(0.98); }
+
+        /* --- IN-GAME HUD (Functional & Clean) --- */
         #ui-layer { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
         
-        #top-bar {
-            display: flex; justify-content: space-between; padding: 20px;
-            font-size: 24px; text-shadow: 2px 2px 0 #000; align-items: center;
-        }
-        
-        .stat-box { display: flex; align-items: center; gap: 10px; }
-        .icon-svg { width: 24px; height: 24px; fill: white; }
-
-        #timer-box { font-size: 40px; color: white; font-variant-numeric: tabular-nums; }
-        .timer-panic { color: #ff3333 !important; animation: shake 0.5s infinite; font-size: 50px !important; }
-        
-        #message-area {
-            position: absolute; top: 20%; width: 100%; text-align: center;
-            font-size: 50px; color: #ff3333; text-shadow: 0 0 20px black;
-            display: none; animation: popIn 0.5s;
+        .hud-bar {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px);
+            border-radius: 40px; padding: 10px 30px;
+            display: flex; gap: 40px; align-items: center;
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
-        /* ANIMATIONS */
-        @keyframes shake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            50% { transform: translate(-3px, 0px) rotate(5deg); }
-            100% { transform: translate(1px, -1px) rotate(-1deg); }
-        }
-        @keyframes popIn {
-            0% { transform: scale(0); } 80% { transform: scale(1.2); } 100% { transform: scale(1); }
-        }
+        .stat { font-size: 18px; font-weight: 600; color: #ddd; }
+        .stat span { color: #ffcc00; font-size: 24px; margin-left: 8px; }
         
+        #timer-display { 
+            font-size: 32px; font-weight: 700; color: white; min-width: 80px; text-align: center; font-variant-numeric: tabular-nums; 
+        }
+        .timer-danger { color: #ff3333 !important; animation: shake 0.4s infinite; text-shadow: 0 0 20px red; }
+
+        /* NOTIFICATIONS */
+        #notify-area {
+            position: absolute; top: 25%; width: 100%; text-align: center;
+            font-size: 48px; font-weight: 800; letter-spacing: 2px;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            opacity: 0; transition: opacity 0.3s;
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
         canvas { display: block; }
     </style>
 </head>
 <body>
 
-    <svg style="display: none;">
-        <symbol id="icon-hammer" viewBox="0 0 24 24">
-            <path d="M10 2v2h4V2H10zm-6 5v6h20V7H4zm2 8v7h4v-7H6zm8 0v7h4v-7h-4z"/>
-        </symbol>
-        <symbol id="icon-skull" viewBox="0 0 24 24">
-            <path d="M12 2c-4.42 0-8 3.58-8 8 0 2.76 1.4 5.18 3.56 6.56L7 19v3h10v-3l-.56-2.44C18.6 15.18 20 12.76 20 10c0-4.42-3.58-8-8-8zm0 2c3.31 0 6 2.69 6 6 0 2.23-1.26 4.15-3.13 5.13L14 17h-4l-.87-1.87C7.26 14.15 6 12.23 6 10c0-3.31 2.69-6 6-6zm-3 4c-.55 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1zm6 0c-.55 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"/>
-        </symbol>
-        <symbol id="icon-trophy" viewBox="0 0 24 24">
-            <path d="M20.2 2H3.8C2.8 2 2 2.8 2 3.8V6c0 3 2.2 5.5 5 5.9V13c0 2.6 1.9 4.8 4.4 5.3L10 20v2h4v-2l-1.4-1.7c2.5-.5 4.4-2.7 4.4-5.3v-1.1c2.8-.4 5-2.9 5-5.9V3.8c0-1-.8-1.8-1.8-1.8zM7 10c-1.7 0-3-1.3-3-3V4h3v6zm10 0c-1.7 0-3-1.3-3-3V4h3v6z"/>
-        </symbol>
-    </svg>
-
     <div id="lobby-screen">
-        <div class="logo-container">
-            <svg class="logo-svg"><use href="#icon-hammer"></use></svg>
-            <div class="logo-text">HammerCurs.io</div>
+        <h1>HammerCurs.io</h1>
+        
+        <div class="glass-panel">
+            <input type="text" id="nickname" placeholder="Enter Nickname" maxlength="12">
+            
+            <div class="room-list" id="room-list">
+                <div style="text-align:center; color:#666;">Loading servers...</div>
+            </div>
+
+            <button class="play-btn" onclick="tryJoinGame()">ENTER ARENA</button>
         </div>
-        <p style="color: #aaa; margin-bottom: 30px; font-size: 18px;">SURVIVE 5 MINUTES OR CRUSH THEM ALL</p>
-        <button class="io-btn" onclick="startGame()">PLAY</button>
-        <p id="status-text" style="margin-top: 20px; font-size: 14px; color: #666;">Waiting for player...</p>
     </div>
 
     <div id="ui-layer">
-        <div id="top-bar">
-            <div class="stat-box">
-                <svg class="icon-svg"><use href="#icon-trophy"></use></svg>
-                <span id="score-val">0</span> PTS
-            </div>
-            
-            <div id="timer-box">WAITING...</div>
-            
-            <div class="stat-box">
-                <svg class="icon-svg"><use href="#icon-skull"></use></svg>
-                <span id="kill-val">0</span> KILLS
-            </div>
+        <div class="hud-bar">
+            <div class="stat">SCORE <span id="ui-score">0</span></div>
+            <div id="timer-display">05:00</div>
+            <div class="stat">KILLS <span id="ui-kills">0</span></div>
         </div>
-        <div id="message-area">NEW HAMMER!</div>
+        <div id="notify-area"></div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
 
     <script>
-        // --- 1. KEY DECODING (Base64) ---
-        const _sec = {
-            k: "QUl6YVN5QV80a1pkLUFTRVhBQXEtR2NrYzJqeTZsaWpQTFF6S20w",
-            d: "aGFtbWVyY3Vycy1pby5maXJlYmFzZWFwcC5jb20=",
-            db: "aHR0cHM6Ly9oYW1tZXJjdXJzLWlvLWRlZmF1bHQtcnRkYi5ldXJvcGUtd2VzdDEuZmlyZWJhc2VkYXRhYmFzZS5hcHA=",
-            p: "aGFtbWVyY3Vycy1pbw==",
-            s: "aGFtbWVyY3Vycy1pby5maXJlYmFzZXN0b3JhZ2UuYXBw",
-            m: "MTA1MTg5OTk2MDk3Mw==",
-            a: "MToxMDUxODk5OTYwOTczOndlYjoxNDIzNTg1YTFhMjFkN2ZmMTMwY2M0"
+        /* ===========================================
+           SECURE ENGINE CONFIGURATION (Base64)
+           ===========================================
+        */
+        const _k = {
+            a: "QUl6YVN5QV80a1pkLUFTRVhBQXEtR2NrYzJqeTZsaWpQTFF6S20w",
+            b: "aGFtbWVyY3Vycy1pby5maXJlYmFzZWFwcC5jb20=",
+            c: "aHR0cHM6Ly9oYW1tZXJjdXJzLWlvLWRlZmF1bHQtcnRkYi5ldXJvcGUtd2VzdDEuZmlyZWJhc2VkYXRhYmFzZS5hcHA=",
+            d: "aGFtbWVyY3Vycy1pbw==",
+            e: "aGFtbWVyY3Vycy1pby5maXJlYmFzZXN0b3JhZ2UuYXBw",
+            f: "MTA1MTg5OTk2MDk3Mw==",
+            g: "MToxMDUxODk5OTYwOTczOndlYjoxNDIzNTg1YTFhMjFkN2ZmMTMwY2M0"
         };
-        const _d = (s) => atob(s);
+        const _d = s => atob(s);
+        
+        firebase.initializeApp({
+            apiKey: _d(_k.a), authDomain: _d(_k.b), databaseURL: _d(_k.c),
+            projectId: _d(_k.d), storageBucket: _d(_k.e), messagingSenderId: _d(_k.f), appId: _d(_k.g)
+        });
 
-        const firebaseConfig = {
-            apiKey: _d(_sec.k), authDomain: _d(_sec.d), databaseURL: _d(_sec.db),
-            projectId: _d(_sec.p), storageBucket: _d(_sec.s), messagingSenderId: _d(_sec.m), appId: _d(_sec.a)
-        };
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
         const db = firebase.database();
+        const auth = firebase.auth();
 
-        // --- 2. GAME VARIABLES ---
+        /* ================= VARIABLES ================= */
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        let myId = null;
-        let myPlayer = { x: 0, y: 0, pts: 0, kills: 0, angle: 0 };
-        let players = {};
-        let coins = [];
-        let camera = { x: 0, y: 0 };
-        let mouse = { x: 0, y: 0 };
-        let roomId = "public_arena_1"; 
+        
+        let myId, myNick;
+        let selectedRoom = "arena_1";
         let gameActive = false;
         
-        // Settings
-        const MAP_SIZE = 3000;
-        const HAMMER_LEN = 90;
-        const HAMMER_SIZE = 40;
+        let me = { x: 0, y: 0, angle: 0, isHunter: false };
+        let players = {};
+        let coins = [];
+        let cam = { x: 0, y: 0 };
+        let mouse = { x: 0, y: 0 };
+        
+        // Physics Config
+        const MAP = 3000;
+        let hammerInertia = 0;
 
-        // --- 3. START GAME ---
-        function startGame() {
-            document.getElementById('status-text').innerText = "Logging in anonymously...";
-            auth.signInAnonymously().catch(e => alert(e.message));
+        /* ================= LOBBY LOGIC ================= */
+        
+        // Generate Room List with Live Colors
+        const rooms = ['arena_1', 'arena_2', 'arena_3'];
+        
+        function updateRoomList() {
+            const container = document.getElementById('room-list');
+            container.innerHTML = ''; // Clear
+
+            rooms.forEach((rid, i) => {
+                // Get player count for color logic
+                db.ref(`rooms/${rid}/players`).once('value', snap => {
+                    const count = snap.numChildren();
+                    let color = '#ff3333'; // Red (1-3)
+                    if (count >= 4) color = '#ffcc00'; // Orange
+                    if (count >= 10) color = '#00ff00'; // Green
+                    if (count >= 14) color = '#0074D9'; // Blue (Full)
+
+                    const div = document.createElement('div');
+                    div.className = `room-item ${selectedRoom === rid ? 'selected' : ''}`;
+                    div.innerHTML = `
+                        <span>Arena ${i+1}</span>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:12px; opacity:0.7;">${count}/15</span>
+                            <div class="status-dot" style="color:${color}; background:${color};"></div>
+                        </div>
+                    `;
+                    div.onclick = () => { selectedRoom = rid; updateRoomList(); };
+                    container.appendChild(div);
+                });
+            });
+        }
+        
+        // Initial Room Load
+        updateRoomList();
+        setInterval(updateRoomList, 5000); // Refresh list every 5s
+
+        function tryJoinGame() {
+            const nickInput = document.getElementById('nickname');
+            const nick = nickInput.value.trim();
+
+            if (nick.length < 3) {
+                alert("Nickname must be at least 3 characters!");
+                nickInput.style.borderColor = "red";
+                return;
+            }
+            
+            myNick = nick;
+            document.getElementById('status-text').innerText = "Connecting..."; // Temp feedback
+            auth.signInAnonymously().catch(e => alert("Auth Error: " + e.message));
         }
 
         auth.onAuthStateChanged(user => {
-            if (user && !gameActive) {
+            if (user && !gameActive && myNick) {
                 myId = user.uid;
-                initGame();
+                startGame();
             }
         });
 
-        function initGame() {
+        /* ================= GAME ENGINE ================= */
+
+        function startGame() {
             document.getElementById('lobby-screen').style.display = 'none';
             document.getElementById('ui-layer').style.display = 'block';
             gameActive = true;
             resize();
 
-            // Create Player in DB
-            const startX = Math.random() * MAP_SIZE;
-            const startY = Math.random() * MAP_SIZE;
-            
-            db.ref(`rooms/${roomId}/players/${myId}`).set({
-                x: startX, y: startY,
-                pts: 0, kills: 0,
-                isHunter: false, 
-                nick: "Player " + Math.floor(Math.random()*1000)
+            // Spawn
+            me.x = Math.random() * MAP;
+            me.y = Math.random() * MAP;
+
+            db.ref(`rooms/${selectedRoom}/players/${myId}`).set({
+                x: me.x, y: me.y,
+                pts: 0, kills: 0, isHunter: false,
+                nick: myNick
             });
 
-            // Listen to Players
-            db.ref(`rooms/${roomId}/players`).on('value', snap => {
-                players = snap.val() || {};
-                
-                // Am I alive?
-                if (!players[myId]) {
-                    if (gameActive) looseGame(); 
-                } else {
-                    // Update local stats
-                    document.getElementById('score-val').innerText = players[myId].pts;
-                    document.getElementById('kill-val').innerText = players[myId].kills || 0;
-                    
-                    // Am I the Hunter?
-                    myPlayer.isHunter = players[myId].isHunter;
+            // Listeners
+            db.ref(`rooms/${selectedRoom}/players`).on('value', s => {
+                players = s.val() || {};
+                if (!players[myId] && gameActive) death();
+                else if (players[myId]) {
+                    // Update UI
+                    document.getElementById('ui-score').innerText = players[myId].pts;
+                    document.getElementById('ui-kills').innerText = players[myId].kills || 0;
+                    me.isHunter = players[myId].isHunter;
                 }
             });
 
-            // Listen to Coins
-            db.ref(`rooms/${roomId}/coins`).on('value', snap => {
-                coins = snap.val() || [];
-                if (coins.length < 50 && myPlayer.isHunter) spawnCoins(); 
+            db.ref(`rooms/${selectedRoom}/coins`).on('value', s => {
+                coins = s.val() || [];
+                if (coins.length < 50 && me.isHunter) spawnCoins();
             });
-            
-            // Start Loop
-            requestAnimationFrame(gameLoop);
-            
-            // Send Data (15 fps)
-            setInterval(sendData, 70);
-            
-            // Timer Logic
-            startClientTimer();
+
+            // Start Loops
+            requestAnimationFrame(render);
+            setInterval(netSync, 70);
+            startTimer();
         }
 
-        // --- 4. GAME LOOP & PHYSICS ---
-        function gameLoop() {
+        function netSync() {
             if (!gameActive) return;
-            updatePhysics();
-            draw();
-            requestAnimationFrame(gameLoop);
-        }
-
-        // HELICOPTER PHYSICS
-        let hammerRotation = 0;
-        let hammerInertia = 0;
-
-        function updatePhysics() {
-            // Movement
-            let dx = mouse.x - canvas.width / 2;
-            let dy = mouse.y - canvas.height / 2;
-            let dist = Math.sqrt(dx*dx + dy*dy);
-            
-            let speed = 5;
-            let vx = (dx / dist) * speed;
-            let vy = (dy / dist) * speed;
-
-            if (dist > 10) {
-                myPlayer.x += vx;
-                myPlayer.y += vy;
-            }
-
-            // Map Limits
-            myPlayer.x = Math.max(0, Math.min(MAP_SIZE, myPlayer.x));
-            myPlayer.y = Math.max(0, Math.min(MAP_SIZE, myPlayer.y));
-
-            // Camera
-            camera.x = myPlayer.x - canvas.width / 2;
-            camera.y = myPlayer.y - canvas.height / 2;
-
-            // INERTIA CALCULATION
-            let moveFactor = (Math.abs(vx) + Math.abs(vy)) * 0.02;
-            hammerInertia += (moveFactor - hammerInertia) * 0.1;
-            hammerRotation += (0.15 + hammerInertia);
-
-            // Collect Coins
-            coins.forEach((c, index) => {
-                if (!c) return;
-                let cDx = myPlayer.x - c.x;
-                let cDy = myPlayer.y - c.y;
-                if (Math.sqrt(cDx*cDx + cDy*cDy) < 30) {
-                    takeCoin(index);
-                }
+            db.ref(`rooms/${selectedRoom}/players/${myId}`).update({
+                x: me.x, y: me.y, angle: me.angle
             });
-
-            // ATTACK (If Hunter)
-            if (myPlayer.isHunter) {
-                let hX = myPlayer.x + Math.cos(hammerRotation) * HAMMER_LEN;
-                let hY = myPlayer.y + Math.sin(hammerRotation) * HAMMER_LEN;
-
-                for (let pid in players) {
-                    if (pid === myId) continue;
-                    let enemy = players[pid];
-                    let dist = Math.sqrt((hX - enemy.x)**2 + (hY - enemy.y)**2);
-                    
-                    if (dist < (HAMMER_SIZE + 20)) { 
-                        smashEnemy(pid);
-                    }
-                }
-            }
         }
 
-        function draw() {
-            // Background
-            ctx.fillStyle = '#111';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        /* ================= PHYSICS & RENDER ================= */
 
+        function render() {
+            if (!gameActive) return;
+
+            // 1. Move
+            let dx = mouse.x - canvas.width/2;
+            let dy = mouse.y - canvas.height/2;
+            let dist = Math.hypot(dx, dy);
+            let speed = 6; // slightly faster for dynamic feel
+            
+            let vx = 0, vy = 0;
+            if (dist > 20) {
+                vx = (dx/dist) * speed;
+                vy = (dy/dist) * speed;
+                me.x += vx;
+                me.y += vy;
+            }
+            
+            // Bounds
+            me.x = Math.max(0, Math.min(MAP, me.x));
+            me.y = Math.max(0, Math.min(MAP, me.y));
+            
+            // Cam
+            cam.x = me.x - canvas.width/2;
+            cam.y = me.y - canvas.height/2;
+
+            // 2. Helicopter Inertia
+            let inertiaTarget = (Math.abs(vx) + Math.abs(vy)) * 0.03;
+            hammerInertia += (inertiaTarget - hammerInertia) * 0.1;
+            me.angle += (0.15 + hammerInertia);
+
+            // 3. Draw
+            ctx.fillStyle = '#121212';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
             // Grid
+            ctx.lineWidth = 1;
             ctx.strokeStyle = '#222';
-            ctx.lineWidth = 2;
             ctx.beginPath();
-            for (let x = -camera.x % 100; x < canvas.width; x += 100) {
-                ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height);
-            }
-            for (let y = -camera.y % 100; y < canvas.height; y += 100) {
-                ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
-            }
+            for(let x = -cam.x % 100; x < canvas.width; x+=100) { ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); }
+            for(let y = -cam.y % 100; y < canvas.height; y+=100) { ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); }
             ctx.stroke();
 
             ctx.save();
-            ctx.translate(-camera.x, -camera.y);
+            ctx.translate(-cam.x, -cam.y);
 
             // Coins
-            ctx.fillStyle = 'gold';
-            coins.forEach(c => {
+            ctx.fillStyle = '#ffcc00';
+            coins.forEach((c, i) => {
                 if(!c) return;
-                ctx.beginPath(); ctx.arc(c.x, c.y, 10, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(c.x, c.y, 8, 0, Math.PI*2); ctx.fill();
+                // Collision
+                if (Math.hypot(me.x - c.x, me.y - c.y) < 30) takeCoin(i);
             });
 
             // Players
-            for (let pid in players) {
+            for(let pid in players) {
                 let p = players[pid];
-                let isMe = (pid === myId);
-                
-                // Body
-                ctx.fillStyle = p.isHunter ? '#ff3333' : (isMe ? '#0074D9' : '#ffffff');
-                if (p.isHunter) {
-                    ctx.shadowBlur = 20; ctx.shadowColor = 'red';
-                } else {
-                    ctx.shadowBlur = 0;
-                }
-                
+                let isMe = pid === myId;
+                let ang = isMe ? me.angle : p.angle;
+
+                // Player Circle
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, 25, 0, Math.PI*2);
+                ctx.fillStyle = p.isHunter ? '#ff3333' : (isMe ? '#0074d9' : '#fff');
+                ctx.shadowBlur = p.isHunter ? 30 : 0;
+                ctx.shadowColor = 'red';
                 ctx.fill();
+                ctx.shadowBlur = 0;
 
-                // Score Text
-                ctx.fillStyle = 'white';
-                ctx.font = "bold 14px Arial";
-                ctx.textAlign = "center";
-                ctx.fillText(p.pts + " PTS", p.x, p.y - 40);
+                // Nickname
+                ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                ctx.font = '600 14px "Segoe UI"';
+                ctx.textAlign = 'center';
+                ctx.fillText(p.nick || "Unknown", p.x, p.y - 40);
 
-                // HAMMER RENDER
+                // Hammer
                 if (p.isHunter) {
-                    let angle = isMe ? hammerRotation : p.angle; 
-                    let hX = p.x + Math.cos(angle) * HAMMER_LEN;
-                    let hY = p.y + Math.sin(angle) * HAMMER_LEN;
+                    let hx = p.x + Math.cos(ang) * 90;
+                    let hy = p.y + Math.sin(ang) * 90;
 
                     // Handle
-                    ctx.strokeStyle = '#5d4037';
-                    ctx.lineWidth = 8;
-                    ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(hX, hY); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(hx, hy);
+                    ctx.lineWidth = 8; ctx.strokeStyle = '#555'; ctx.stroke();
 
-                    // Hammer Head
-                    ctx.fillStyle = '#444';
+                    // Head
                     ctx.save();
-                    ctx.translate(hX, hY);
-                    ctx.rotate(angle);
-                    ctx.fillRect(-15, -25, 50, 50); 
-                    // Metallic Shine
-                    ctx.fillStyle = '#666';
-                    ctx.fillRect(-5, -15, 30, 30);
+                    ctx.translate(hx, hy);
+                    ctx.rotate(ang);
+                    ctx.fillStyle = '#888';
+                    ctx.fillRect(-15, -25, 50, 50); // Main block
+                    ctx.fillStyle = '#aaa'; 
+                    ctx.fillRect(-5, -15, 30, 30);  // Detail
                     ctx.restore();
+
+                    // Attack Logic
+                    if (isMe) {
+                        for(let eid in players) {
+                            if (eid === myId) continue;
+                            if (Math.hypot(hx - players[eid].x, hy - players[eid].y) < 60) smash(eid);
+                        }
+                    }
                 }
             }
             ctx.restore();
+            requestAnimationFrame(render);
         }
 
-        // --- 5. NETWORK & SCORING ---
+        /* ================= LOGIC & EVENTS ================= */
 
-        function sendData() {
-            if (!myId) return;
-            db.ref(`rooms/${roomId}/players/${myId}`).update({
-                x: myPlayer.x,
-                y: myPlayer.y,
-                angle: hammerRotation 
-            });
+        function takeCoin(i) {
+            delete coins[i];
+            db.ref(`rooms/${selectedRoom}/coins/${i}`).remove();
+            db.ref(`players/${myId}/pts`).transaction(v => (v||0) + 5);
         }
 
-        function takeCoin(index) {
-            delete coins[index]; 
-            db.ref(`rooms/${roomId}/coins/${index}`).remove();
+        function smash(eid) {
+            // Bonus for me
+            db.ref(`players/${myId}/pts`).transaction(v => (v||0) + 50);
+            db.ref(`players/${myId}/kills`).transaction(v => (v||0) + 1);
             
-            // +5 PTS
-            db.ref(`players/${myId}/pts`).transaction(pts => (pts || 0) + 5);
+            // Penalty for victim
+            db.ref(`players/${eid}/pts`).transaction(v => Math.max(0, (v||0) - 300));
+            db.ref(`rooms/${selectedRoom}/players/${eid}`).remove();
+            
+            showNotify("ENEMY CRUSHED!");
         }
 
-        // KILL LOGIC (+50 PTS)
-        function smashEnemy(enemyId) {
-            console.log("SMASHED:", enemyId);
-            
-            // Hunter Bonus
-            db.ref(`players/${myId}/pts`).transaction(p => (p || 0) + 50);
-            db.ref(`players/${myId}/kills`).transaction(k => (k || 0) + 1);
-
-            // Victim Penalty (-300 PTS)
-            db.ref(`players/${enemyId}/pts`).transaction(p => {
-                let res = (p || 0) - 300;
-                return res < 0 ? 0 : res; 
-            });
-            
-            // Remove Victim
-            db.ref(`rooms/${roomId}/players/${enemyId}`).remove();
-            
-            // Screen Shake Effect
-            canvas.style.transform = "translate(5px, 5px)";
-            setTimeout(() => canvas.style.transform = "none", 100);
-        }
-
-        // DEATH LOGIC
-        function looseGame() {
+        function death() {
             gameActive = false;
-            alert("SMASHED! -300 PTS");
-            location.reload(); 
+            alert("YOU WERE CRUSHED! -300 PTS");
+            location.reload();
         }
-        
-        // --- 6. HELPERS ---
-        
+
         function spawnCoins() {
-            let newCoins = {};
-            for(let i=0; i<50; i++) {
-                newCoins[i] = { x: Math.random()*MAP_SIZE, y: Math.random()*MAP_SIZE };
-            }
-            db.ref(`rooms/${roomId}/coins`).update(newCoins);
+            let nc = {};
+            for(let i=0; i<50; i++) nc[i] = { x: Math.random()*MAP, y: Math.random()*MAP };
+            db.ref(`rooms/${selectedRoom}/coins`).update(nc);
         }
 
-        function startClientTimer() {
-            let time = 300; // 5 minutes
+        function startTimer() {
+            let t = 300; // 5 mins
+            let el = document.getElementById('timer-display');
+            
             setInterval(() => {
-                time--;
-                let min = Math.floor(time / 60);
-                let sec = time % 60;
-                let timerEl = document.getElementById('timer-box');
-                timerEl.innerText = `${min}:${sec < 10 ? '0'+sec : sec}`;
+                t--;
+                let m = Math.floor(t/60);
+                let s = t%60;
+                el.innerText = `0${m}:${s<10?'0'+s:s}`;
 
-                // PANIC MODE (Last 10s)
-                if (time < 10 && time > 0) timerEl.classList.add('timer-panic');
-                
-                // SURVIVAL BONUS (+400 PTS)
-                if (time <= 0) {
-                    if (gameActive) {
-                        alert("SURVIVOR! +400 PTS!");
-                        db.ref(`players/${myId}/pts`).transaction(p => (p || 0) + 400);
-                        location.reload();
-                    }
+                if (t <= 10) el.classList.add('timer-danger');
+                if (t <= 0 && gameActive) {
+                    alert("SURVIVED! +400 PTS");
+                    db.ref(`players/${myId}/pts`).transaction(v => (v||0) + 400);
+                    location.reload();
                 }
             }, 1000);
         }
 
-        // Controls
-        window.addEventListener('mousemove', e => {
-            mouse.x = e.clientX;
-            mouse.y = e.clientY;
-        });
-        window.addEventListener('resize', resize);
-        function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+        function showNotify(msg) {
+            let el = document.getElementById('notify-area');
+            el.innerText = msg;
+            el.style.color = '#ffcc00';
+            el.style.opacity = 1;
+            setTimeout(() => el.style.opacity = 0, 1500);
         }
 
-        // Temporary Hunter Assignment (First player gets hammer after 5s)
+        // Inputs
+        window.onmousemove = e => { mouse.x = e.clientX; mouse.y = e.clientY; };
+        window.onresize = resize;
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+
+        // Auto-Hunter (First player logic)
         setTimeout(() => {
-           db.ref(`rooms/${roomId}/players`).once('value', snap => {
-               let all = snap.val();
-               if (!all) return;
-               let ids = Object.keys(all);
-               if (ids.length > 0 && ids[0] === myId) {
-                   db.ref(`rooms/${roomId}/players/${myId}`).update({isHunter: true});
-               }
-           });
+            db.ref(`rooms/${selectedRoom}/players`).once('value', s => {
+                let d = s.val();
+                if (d && Object.keys(d)[0] === myId) db.ref(`rooms/${selectedRoom}/players/${myId}`).update({isHunter:true});
+            });
         }, 5000);
 
     </script>
