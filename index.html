@@ -3,686 +3,459 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HAMMER.IO | TITAN PROTOCOL</title>
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700;900&display=swap" rel="stylesheet">
+    <title>HammerCurs.io - Curse of the Hammer</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
+
     <style>
-        /* =========================================
-           CORE VISUALS & RESET
-           ========================================= */
-        :root {
-            --neon-blue: #00f3ff;
-            --neon-red: #ff0055;
-            --neon-gold: #ffd700;
-            --bg-dark: #0a0a12;
-            --ui-bg: rgba(10, 10, 18, 0.95);
-            --border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        * { box-sizing: border-box; user-select: none; }
+        body { margin: 0; overflow: hidden; background: #1a1a1a; font-family: 'Arial Black', sans-serif; color: white; user-select: none; }
         
-        body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            background: #000; overflow: hidden;
-            font-family: 'Rajdhani', sans-serif;
-            color: white;
-        }
-
-        /* =========================================
-           UI: LOBBY & MENUS
-           ========================================= */
-        #ui-layer {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%);
-            display: flex; align-items: center; justify-content: center;
-            z-index: 999;
-        }
-
-        .panel {
-            width: 450px; padding: 40px;
-            background: var(--ui-bg);
-            border: 1px solid var(--neon-blue);
-            box-shadow: 0 0 50px rgba(0, 243, 255, 0.15);
-            text-align: center;
-            position: relative;
-            clip-path: polygon(10% 0, 100% 0, 100% 90%, 90% 100%, 0 100%, 0 10%);
-        }
-
-        h1 {
-            font-size: 64px; margin: 0 0 10px; line-height: 0.8;
-            background: linear-gradient(90deg, #fff, var(--neon-blue));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-transform: uppercase; letter-spacing: 2px;
-        }
-        
-        .version { font-size: 12px; color: #555; margin-bottom: 30px; letter-spacing: 5px; }
-
-        .input-group { margin-bottom: 20px; position: relative; }
-        
-        input {
-            width: 100%; background: rgba(255,255,255,0.05);
-            border: 1px solid #333; color: var(--neon-blue);
-            padding: 15px; font-size: 20px; text-align: center;
-            font-family: inherit; outline: none; transition: 0.3s;
-        }
-        input:focus { border-color: var(--neon-blue); box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); }
-
-        button {
-            width: 100%; padding: 20px; font-size: 24px; font-weight: 900;
-            background: var(--neon-blue); color: #000; border: none;
-            cursor: pointer; transition: 0.2s; text-transform: uppercase;
-            clip-path: polygon(0 0, 100% 0, 100% 80%, 95% 100%, 0 100%);
-        }
-        button:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0, 243, 255, 0.4); }
-
-        .server-status {
-            margin-top: 20px; border-top: 1px solid #333; padding-top: 15px;
-            display: flex; justify-content: space-between; font-size: 14px; color: #888;
-        }
-
-        /* =========================================
-           UI: HUD (HEADS UP DISPLAY)
-           ========================================= */
-        #hud-layer {
+        /* LOBBY SCREEN */
+        #lobby-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; display: none;
+            background: rgba(0,0,0,0.9); display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 10;
         }
-
-        /* Top Bar */
-        .top-bar {
-            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-            display: flex; gap: 15px;
-        }
-        .stat-badge {
-            background: rgba(0,0,0,0.6); padding: 10px 25px;
-            border: 1px solid rgba(255,255,255,0.2);
-            font-size: 20px; font-weight: 700; color: #fff;
-            display: flex; align-items: center; gap: 10px;
-        }
-        #timer-display { color: var(--neon-red); min-width: 80px; justify-content: center; }
-
-        /* Minimap */
-        #minimap-container {
-            position: absolute; bottom: 20px; right: 20px;
-            width: 150px; height: 150px;
-            background: rgba(0,0,0,0.5); border: 2px solid #333;
-            border-radius: 50%; overflow: hidden;
-        }
-        #minimap { width: 100%; height: 100%; opacity: 0.8; }
-
-        /* Ammo */
-        #ammo-rack {
-            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
-            display: flex; gap: 8px;
-        }
-        .ammo-slug {
-            width: 16px; height: 40px; background: var(--neon-gold);
-            transform: skewX(-20deg); box-shadow: 0 0 15px var(--neon-gold);
-            transition: 0.2s;
-        }
-        .ammo-slug.empty { background: #333; box-shadow: none; opacity: 0.3; }
-
-        /* Kill Feed */
-        #killfeed {
-            position: absolute; top: 20px; right: 20px;
-            text-align: right; display: flex; flex-direction: column; gap: 5px;
-        }
-        .kill-msg {
-            background: linear-gradient(90deg, transparent, rgba(0,0,0,0.8));
-            padding: 5px 15px; font-size: 14px; color: #fff;
-            animation: slideIn 0.3s ease-out;
-        }
-        .kill-msg b { color: var(--neon-red); }
-
-        /* Leaderboard */
-        #leaderboard {
-            position: absolute; top: 20px; left: 20px;
-            background: rgba(0,0,0,0.5); padding: 15px;
-            border-left: 3px solid var(--neon-blue);
-        }
-        .lb-row { font-size: 14px; margin-bottom: 4px; color: #ccc; }
-        .lb-row.me { color: var(--neon-blue); font-weight: bold; }
-
-        @keyframes slideIn { from { transform: translateX(50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         
-        /* Death Screen overlay */
-        #death-screen {
-            position: absolute; top:0; left:0; width:100%; height:100%;
-            background: rgba(255, 0, 85, 0.2);
-            display: none; align-items: center; justify-content: center; z-index: 50;
-            backdrop-filter: blur(5px);
-        }
-        .wasted { font-size: 80px; color: var(--neon-red); font-weight: 900; text-shadow: 0 0 30px black; }
+        /* Logo Styling */
+        .logo-container { display: flex; align-items: center; margin-bottom: 20px; }
+        .logo-text { font-size: 60px; color: #ffcc00; text-shadow: 0 0 20px #ff6600; margin-left: 15px; }
+        .logo-svg { width: 60px; height: 60px; fill: #ffcc00; filter: drop-shadow(0 0 10px #ff6600); }
 
+        .io-btn {
+            background: #ffcc00; border: none; border-bottom: 8px solid #cc9900;
+            border-radius: 40px; padding: 20px 80px; font-size: 35px;
+            font-family: inherit; cursor: pointer; transition: 0.1s;
+            box-shadow: 0 10px 30px rgba(255, 204, 0, 0.3);
+            color: #222;
+        }
+        .io-btn:active { transform: translateY(8px); border-bottom: 0; }
+        
+        /* GAME UI */
+        #ui-layer { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        
+        #top-bar {
+            display: flex; justify-content: space-between; padding: 20px;
+            font-size: 24px; text-shadow: 2px 2px 0 #000; align-items: center;
+        }
+        
+        .stat-box { display: flex; align-items: center; gap: 10px; }
+        .icon-svg { width: 24px; height: 24px; fill: white; }
+
+        #timer-box { font-size: 40px; color: white; font-variant-numeric: tabular-nums; }
+        .timer-panic { color: #ff3333 !important; animation: shake 0.5s infinite; font-size: 50px !important; }
+        
+        #message-area {
+            position: absolute; top: 20%; width: 100%; text-align: center;
+            font-size: 50px; color: #ff3333; text-shadow: 0 0 20px black;
+            display: none; animation: popIn 0.5s;
+        }
+
+        /* ANIMATIONS */
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            50% { transform: translate(-3px, 0px) rotate(5deg); }
+            100% { transform: translate(1px, -1px) rotate(-1deg); }
+        }
+        @keyframes popIn {
+            0% { transform: scale(0); } 80% { transform: scale(1.2); } 100% { transform: scale(1); }
+        }
+        
         canvas { display: block; }
     </style>
 </head>
 <body>
 
+    <svg style="display: none;">
+        <symbol id="icon-hammer" viewBox="0 0 24 24">
+            <path d="M10 2v2h4V2H10zm-6 5v6h20V7H4zm2 8v7h4v-7H6zm8 0v7h4v-7h-4z"/>
+        </symbol>
+        <symbol id="icon-skull" viewBox="0 0 24 24">
+            <path d="M12 2c-4.42 0-8 3.58-8 8 0 2.76 1.4 5.18 3.56 6.56L7 19v3h10v-3l-.56-2.44C18.6 15.18 20 12.76 20 10c0-4.42-3.58-8-8-8zm0 2c3.31 0 6 2.69 6 6 0 2.23-1.26 4.15-3.13 5.13L14 17h-4l-.87-1.87C7.26 14.15 6 12.23 6 10c0-3.31 2.69-6 6-6zm-3 4c-.55 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1zm6 0c-.55 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"/>
+        </symbol>
+        <symbol id="icon-trophy" viewBox="0 0 24 24">
+            <path d="M20.2 2H3.8C2.8 2 2 2.8 2 3.8V6c0 3 2.2 5.5 5 5.9V13c0 2.6 1.9 4.8 4.4 5.3L10 20v2h4v-2l-1.4-1.7c2.5-.5 4.4-2.7 4.4-5.3v-1.1c2.8-.4 5-2.9 5-5.9V3.8c0-1-.8-1.8-1.8-1.8zM7 10c-1.7 0-3-1.3-3-3V4h3v6zm10 0c-1.7 0-3-1.3-3-3V4h3v6z"/>
+        </symbol>
+    </svg>
+
+    <div id="lobby-screen">
+        <div class="logo-container">
+            <svg class="logo-svg"><use href="#icon-hammer"></use></svg>
+            <div class="logo-text">HammerCurs.io</div>
+        </div>
+        <p style="color: #aaa; margin-bottom: 30px; font-size: 18px;">SURVIVE 5 MINUTES OR CRUSH THEM ALL</p>
+        <button class="io-btn" onclick="startGame()">PLAY</button>
+        <p id="status-text" style="margin-top: 20px; font-size: 14px; color: #666;">Waiting for player...</p>
+    </div>
+
     <div id="ui-layer">
-        <div class="panel">
-            <h1>HAMMER<span>.IO</span></h1>
-            <div class="version">TITAN BUILD v9.0</div>
-            
-            <div class="input-group">
-                <input type="text" id="nick" placeholder="OPERATOR NAME" maxlength="12">
+        <div id="top-bar">
+            <div class="stat-box">
+                <svg class="icon-svg"><use href="#icon-trophy"></use></svg>
+                <span id="score-val">0</span> PTS
             </div>
             
-            <button onclick="Game.init()">INITIALIZE</button>
-
-            <div class="server-status">
-                <span>STATUS: <b style="color:#0f0">ONLINE</b></span>
-                <span>PLAYERS: <b id="lobby-count" style="color:#fff">...</b></span>
-            </div>
-            <div id="lobby-list" style="margin-top:15px; height: 100px; overflow-y: auto; text-align: left; font-size: 12px; color: #666; border: 1px solid #222; padding: 10px;">
-                Connecting...
+            <div id="timer-box">WAITING...</div>
+            
+            <div class="stat-box">
+                <svg class="icon-svg"><use href="#icon-skull"></use></svg>
+                <span id="kill-val">0</span> KILLS
             </div>
         </div>
-    </div>
-
-    <div id="hud-layer">
-        <div class="top-bar">
-            <div class="stat-badge">SCORE <span id="score-val" style="color:var(--neon-blue)">0</span></div>
-            <div class="stat-badge" id="timer-display">--</div>
-            <div class="stat-badge">KILLS <span id="kills-val" style="color:var(--neon-red)">0</span></div>
-        </div>
-
-        <div id="leaderboard">
-            <div style="font-size:10px; color:#666; margin-bottom:5px;">SECTOR TOP</div>
-            <div id="lb-content"></div>
-        </div>
-
-        <div id="killfeed"></div>
-        <div id="ammo-rack"></div>
-
-        <div id="minimap-container">
-            <canvas id="minimap"></canvas>
-        </div>
-    </div>
-
-    <div id="death-screen">
-        <div class="wasted">CRITICAL FAILURE</div>
+        <div id="message-area">NEW HAMMER!</div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, update, onDisconnect, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-        /**
-         * ====================================================================
-         * HAMMER.IO TITAN ENGINE
-         * ====================================================================
-         */
-
-        // --- CONFIGURATION ---
-        const CONFIG = {
-            mapWidth: 2000,
-            mapHeight: 2000,
-            cameraSmooth: 0.1,
-            hammerSpeed: 28,
-            botCount: 8, // Количество ботов
-            colors: {
-                me: '#00f3ff',
-                enemy: '#ffffff',
-                hunter: '#ff0055',
-                bot: '#8888aa'
-            }
-        };
-
-        const KEYS = {
+    <script>
+        // --- 1. KEY DECODING (Base64) ---
+        const _sec = {
             k: "QUl6YVN5QV80a1pkLUFTRVhBQXEtR2NrYzJqeTZsaWpQTFF6S20w",
             d: "aGFtbWVyY3Vycy1pby5maXJlYmFzZWFwcC5jb20=",
-            u: "aHR0cHM6Ly9oYW1tZXJjdXJzLWlvLWRlZmF1bHQtcnRkYi5ldXJvcGUtd2VzdDEuZmlyZWJhc2VkYXRhYmFzZS5hcHA=",
+            db: "aHR0cHM6Ly9oYW1tZXJjdXJzLWlvLWRlZmF1bHQtcnRkYi5ldXJvcGUtd2VzdDEuZmlyZWJhc2VkYXRhYmFzZS5hcHA=",
             p: "aGFtbWVyY3Vycy1pbw==",
             s: "aGFtbWVyY3Vycy1pby5maXJlYmFzZXN0b3JhZ2UuYXBw",
             m: "MTA1MTg5OTk2MDk3Mw==",
             a: "MToxMDUxODk5OTYwOTczOndlYjoxNDIzNTg1YTFhMjFkN2ZmMTMwY2M0"
         };
+        const _d = (s) => atob(s);
 
-        // --- FIREBASE INIT ---
-        const app = initializeApp({
-            apiKey: atob(KEYS.k), authDomain: atob(KEYS.d), databaseURL: atob(KEYS.u),
-            projectId: atob(KEYS.p), storageBucket: atob(KEYS.s), messagingSenderId: atob(KEYS.m), appId: atob(KEYS.a)
-        });
-        const db = getDatabase(app);
-
-        // --- GAME STATE ---
-        const State = {
-            myId: Math.random().toString(36).substring(7),
-            nick: "Unknown",
-            players: {},
-            hammers: [],
-            particles: [],
-            messages: [], // Chat messages from bots
-            camera: { x: 0, y: 0 },
-            mouse: { x: 0, y: 0, worldX: 0, worldY: 0, down: false },
-            isHunter: false,
-            ammo: 3,
-            rotation: 0,
-            score: 0,
-            kills: 0,
-            shake: 0,
-            hunterStart: 0,
-            alive: true
+        const firebaseConfig = {
+            apiKey: _d(_sec.k), authDomain: _d(_sec.d), databaseURL: _d(_sec.db),
+            projectId: _d(_sec.p), storageBucket: _d(_sec.s), messagingSenderId: _d(_sec.m), appId: _d(_sec.a)
         };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
 
-        // --- CANVAS SETUP ---
+        // --- 2. GAME VARIABLES ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const mmCanvas = document.getElementById('minimap');
-        const mmCtx = mmCanvas.getContext('2d');
+        let myId = null;
+        let myPlayer = { x: 0, y: 0, pts: 0, kills: 0, angle: 0 };
+        let players = {};
+        let coins = [];
+        let camera = { x: 0, y: 0 };
+        let mouse = { x: 0, y: 0 };
+        let roomId = "public_arena_1"; 
+        let gameActive = false;
+        
+        // Settings
+        const MAP_SIZE = 3000;
+        const HAMMER_LEN = 90;
+        const HAMMER_SIZE = 40;
 
+        // --- 3. START GAME ---
+        function startGame() {
+            document.getElementById('status-text').innerText = "Logging in anonymously...";
+            auth.signInAnonymously().catch(e => alert(e.message));
+        }
+
+        auth.onAuthStateChanged(user => {
+            if (user && !gameActive) {
+                myId = user.uid;
+                initGame();
+            }
+        });
+
+        function initGame() {
+            document.getElementById('lobby-screen').style.display = 'none';
+            document.getElementById('ui-layer').style.display = 'block';
+            gameActive = true;
+            resize();
+
+            // Create Player in DB
+            const startX = Math.random() * MAP_SIZE;
+            const startY = Math.random() * MAP_SIZE;
+            
+            db.ref(`rooms/${roomId}/players/${myId}`).set({
+                x: startX, y: startY,
+                pts: 0, kills: 0,
+                isHunter: false, 
+                nick: "Player " + Math.floor(Math.random()*1000)
+            });
+
+            // Listen to Players
+            db.ref(`rooms/${roomId}/players`).on('value', snap => {
+                players = snap.val() || {};
+                
+                // Am I alive?
+                if (!players[myId]) {
+                    if (gameActive) looseGame(); 
+                } else {
+                    // Update local stats
+                    document.getElementById('score-val').innerText = players[myId].pts;
+                    document.getElementById('kill-val').innerText = players[myId].kills || 0;
+                    
+                    // Am I the Hunter?
+                    myPlayer.isHunter = players[myId].isHunter;
+                }
+            });
+
+            // Listen to Coins
+            db.ref(`rooms/${roomId}/coins`).on('value', snap => {
+                coins = snap.val() || [];
+                if (coins.length < 50 && myPlayer.isHunter) spawnCoins(); 
+            });
+            
+            // Start Loop
+            requestAnimationFrame(gameLoop);
+            
+            // Send Data (15 fps)
+            setInterval(sendData, 70);
+            
+            // Timer Logic
+            startClientTimer();
+        }
+
+        // --- 4. GAME LOOP & PHYSICS ---
+        function gameLoop() {
+            if (!gameActive) return;
+            updatePhysics();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // HELICOPTER PHYSICS
+        let hammerRotation = 0;
+        let hammerInertia = 0;
+
+        function updatePhysics() {
+            // Movement
+            let dx = mouse.x - canvas.width / 2;
+            let dy = mouse.y - canvas.height / 2;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+            
+            let speed = 5;
+            let vx = (dx / dist) * speed;
+            let vy = (dy / dist) * speed;
+
+            if (dist > 10) {
+                myPlayer.x += vx;
+                myPlayer.y += vy;
+            }
+
+            // Map Limits
+            myPlayer.x = Math.max(0, Math.min(MAP_SIZE, myPlayer.x));
+            myPlayer.y = Math.max(0, Math.min(MAP_SIZE, myPlayer.y));
+
+            // Camera
+            camera.x = myPlayer.x - canvas.width / 2;
+            camera.y = myPlayer.y - canvas.height / 2;
+
+            // INERTIA CALCULATION
+            let moveFactor = (Math.abs(vx) + Math.abs(vy)) * 0.02;
+            hammerInertia += (moveFactor - hammerInertia) * 0.1;
+            hammerRotation += (0.15 + hammerInertia);
+
+            // Collect Coins
+            coins.forEach((c, index) => {
+                if (!c) return;
+                let cDx = myPlayer.x - c.x;
+                let cDy = myPlayer.y - c.y;
+                if (Math.sqrt(cDx*cDx + cDy*cDy) < 30) {
+                    takeCoin(index);
+                }
+            });
+
+            // ATTACK (If Hunter)
+            if (myPlayer.isHunter) {
+                let hX = myPlayer.x + Math.cos(hammerRotation) * HAMMER_LEN;
+                let hY = myPlayer.y + Math.sin(hammerRotation) * HAMMER_LEN;
+
+                for (let pid in players) {
+                    if (pid === myId) continue;
+                    let enemy = players[pid];
+                    let dist = Math.sqrt((hX - enemy.x)**2 + (hY - enemy.y)**2);
+                    
+                    if (dist < (HAMMER_SIZE + 20)) { 
+                        smashEnemy(pid);
+                    }
+                }
+            }
+        }
+
+        function draw() {
+            // Background
+            ctx.fillStyle = '#111';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Grid
+            ctx.strokeStyle = '#222';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let x = -camera.x % 100; x < canvas.width; x += 100) {
+                ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height);
+            }
+            for (let y = -camera.y % 100; y < canvas.height; y += 100) {
+                ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
+            }
+            ctx.stroke();
+
+            ctx.save();
+            ctx.translate(-camera.x, -camera.y);
+
+            // Coins
+            ctx.fillStyle = 'gold';
+            coins.forEach(c => {
+                if(!c) return;
+                ctx.beginPath(); ctx.arc(c.x, c.y, 10, 0, Math.PI*2); ctx.fill();
+            });
+
+            // Players
+            for (let pid in players) {
+                let p = players[pid];
+                let isMe = (pid === myId);
+                
+                // Body
+                ctx.fillStyle = p.isHunter ? '#ff3333' : (isMe ? '#0074D9' : '#ffffff');
+                if (p.isHunter) {
+                    ctx.shadowBlur = 20; ctx.shadowColor = 'red';
+                } else {
+                    ctx.shadowBlur = 0;
+                }
+                
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 25, 0, Math.PI*2);
+                ctx.fill();
+
+                // Score Text
+                ctx.fillStyle = 'white';
+                ctx.font = "bold 14px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText(p.pts + " PTS", p.x, p.y - 40);
+
+                // HAMMER RENDER
+                if (p.isHunter) {
+                    let angle = isMe ? hammerRotation : p.angle; 
+                    let hX = p.x + Math.cos(angle) * HAMMER_LEN;
+                    let hY = p.y + Math.sin(angle) * HAMMER_LEN;
+
+                    // Handle
+                    ctx.strokeStyle = '#5d4037';
+                    ctx.lineWidth = 8;
+                    ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(hX, hY); ctx.stroke();
+
+                    // Hammer Head
+                    ctx.fillStyle = '#444';
+                    ctx.save();
+                    ctx.translate(hX, hY);
+                    ctx.rotate(angle);
+                    ctx.fillRect(-15, -25, 50, 50); 
+                    // Metallic Shine
+                    ctx.fillStyle = '#666';
+                    ctx.fillRect(-5, -15, 30, 30);
+                    ctx.restore();
+                }
+            }
+            ctx.restore();
+        }
+
+        // --- 5. NETWORK & SCORING ---
+
+        function sendData() {
+            if (!myId) return;
+            db.ref(`rooms/${roomId}/players/${myId}`).update({
+                x: myPlayer.x,
+                y: myPlayer.y,
+                angle: hammerRotation 
+            });
+        }
+
+        function takeCoin(index) {
+            delete coins[index]; 
+            db.ref(`rooms/${roomId}/coins/${index}`).remove();
+            
+            // +5 PTS
+            db.ref(`players/${myId}/pts`).transaction(pts => (pts || 0) + 5);
+        }
+
+        // KILL LOGIC (+50 PTS)
+        function smashEnemy(enemyId) {
+            console.log("SMASHED:", enemyId);
+            
+            // Hunter Bonus
+            db.ref(`players/${myId}/pts`).transaction(p => (p || 0) + 50);
+            db.ref(`players/${myId}/kills`).transaction(k => (k || 0) + 1);
+
+            // Victim Penalty (-300 PTS)
+            db.ref(`players/${enemyId}/pts`).transaction(p => {
+                let res = (p || 0) - 300;
+                return res < 0 ? 0 : res; 
+            });
+            
+            // Remove Victim
+            db.ref(`rooms/${roomId}/players/${enemyId}`).remove();
+            
+            // Screen Shake Effect
+            canvas.style.transform = "translate(5px, 5px)";
+            setTimeout(() => canvas.style.transform = "none", 100);
+        }
+
+        // DEATH LOGIC
+        function looseGame() {
+            gameActive = false;
+            alert("SMASHED! -300 PTS");
+            location.reload(); 
+        }
+        
+        // --- 6. HELPERS ---
+        
+        function spawnCoins() {
+            let newCoins = {};
+            for(let i=0; i<50; i++) {
+                newCoins[i] = { x: Math.random()*MAP_SIZE, y: Math.random()*MAP_SIZE };
+            }
+            db.ref(`rooms/${roomId}/coins`).update(newCoins);
+        }
+
+        function startClientTimer() {
+            let time = 300; // 5 minutes
+            setInterval(() => {
+                time--;
+                let min = Math.floor(time / 60);
+                let sec = time % 60;
+                let timerEl = document.getElementById('timer-box');
+                timerEl.innerText = `${min}:${sec < 10 ? '0'+sec : sec}`;
+
+                // PANIC MODE (Last 10s)
+                if (time < 10 && time > 0) timerEl.classList.add('timer-panic');
+                
+                // SURVIVAL BONUS (+400 PTS)
+                if (time <= 0) {
+                    if (gameActive) {
+                        alert("SURVIVOR! +400 PTS!");
+                        db.ref(`players/${myId}/pts`).transaction(p => (p || 0) + 400);
+                        location.reload();
+                    }
+                }
+            }, 1000);
+        }
+
+        // Controls
+        window.addEventListener('mousemove', e => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+        window.addEventListener('resize', resize);
         function resize() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-            mmCanvas.width = 150;
-            mmCanvas.height = 150;
         }
-        window.addEventListener('resize', resize);
-        resize();
 
-        // --- ASSETS (PROCEDURAL) ---
-        const HammerPath = new Path2D("M-35 -20 L35 -20 L40 10 L-40 10 Z M-12 10 L12 10 L12 70 L-12 70 Z");
-
-        // --- BOT AI SYSTEM ---
-        class BotSystem {
-            constructor() {
-                this.bots = [];
-                this.names = ["X-RAY", "Viper", "Ghost", "Zero", "Neon", "Kilo", "Delta", "Echo"];
-            }
-
-            init() {
-                for(let i=0; i<CONFIG.botCount; i++) {
-                    this.bots.push({
-                        id: 'bot_'+i,
-                        nick: this.names[i % this.names.length],
-                        x: Math.random() * CONFIG.mapWidth,
-                        y: Math.random() * CONFIG.mapHeight,
-                        vx: (Math.random()-0.5)*4,
-                        vy: (Math.random()-0.5)*4,
-                        angle: 0,
-                        isHunter: false,
-                        status: 'ALIVE',
-                        changeDirTimer: 0
-                    });
-                }
-            }
-
-            update() {
-                this.bots.forEach(b => {
-                    if(b.status === 'DEAD') return;
-
-                    // AI Logic: Movement
-                    b.changeDirTimer--;
-                    if(b.changeDirTimer <= 0) {
-                        b.vx = (Math.random()-0.5) * 6;
-                        b.vy = (Math.random()-0.5) * 6;
-                        b.changeDirTimer = 50 + Math.random() * 100;
-                    }
-
-                    // Keep in bounds
-                    b.x += b.vx; b.y += b.vy;
-                    if(b.x < 0) b.x = 0; if(b.x > CONFIG.mapWidth) b.x = CONFIG.mapWidth;
-                    if(b.y < 0) b.y = 0; if(b.y > CONFIG.mapHeight) b.y = CONFIG.mapHeight;
-
-                    // Fake Rotation
-                    b.angle += 0.05;
-                });
-            }
-        }
-        const Bots = new BotSystem();
-
-        // --- MAIN GAME CLASS ---
-        const Game = {
-            init: function() {
-                const input = document.getElementById('nick').value;
-                State.nick = input.toUpperCase() || "UNIT_" + State.myId.substr(0,3);
-
-                document.getElementById('ui-layer').style.display = 'none';
-                document.getElementById('hud-layer').style.display = 'block';
-
-                // Spawn at random location
-                const startX = Math.random() * CONFIG.mapWidth;
-                const startY = Math.random() * CONFIG.mapHeight;
-
-                const myRef = ref(db, `rooms/global/players/${State.myId}`);
-                set(myRef, {
-                    nick: State.nick, x: startX, y: startY,
-                    isHunter: false, status: 'ALIVE', score: 0
-                });
-                onDisconnect(myRef).remove();
-
-                // Start sub-systems
-                if(Object.keys(State.players).length === 0) Bots.init();
-                
-                this.loop();
-            },
-
-            // CORE LOOP
-            loop: function() {
-                if(!State.alive) return;
-
-                // 1. Logic
-                Game.updateCamera();
-                Bots.update();
-                Game.updateProjectiles();
-                Game.updateParticles();
-                
-                // 2. Input Sync
-                State.mouse.worldX = State.mouse.x + State.camera.x;
-                State.mouse.worldY = State.mouse.y + State.camera.y;
-                
-                // Send data to server (throttled implicitly by animation frame, could be optimized)
-                const myRef = ref(db, `rooms/global/players/${State.myId}`);
-                // Simple prediction for self
-                if(State.players[State.myId]) {
-                   // Move logic could be here if we had WASD, but we track mouse for hammer
-                   // Assuming player follows mouse roughly or stays still? 
-                   // For this mode, let's say player moves towards mouse slowly
-                   const dx = State.mouse.worldX - State.players[State.myId].x;
-                   const dy = State.mouse.worldY - State.players[State.myId].y;
-                   const dist = Math.sqrt(dx*dx + dy*dy);
-                   if(dist > 10) {
-                       State.players[State.myId].x += (dx/dist) * 4;
-                       State.players[State.myId].y += (dy/dist) * 4;
-                   }
-                   update(myRef, { x: Math.round(State.players[State.myId].x), y: Math.round(State.players[State.myId].y) });
-                }
-
-                // 3. Render
-                Game.render();
-                Game.renderMinimap();
-
-                requestAnimationFrame(Game.loop);
-            },
-
-            updateCamera: function() {
-                if(!State.players[State.myId]) return;
-                const me = State.players[State.myId];
-                
-                // Shake effect
-                let shakeX = 0, shakeY = 0;
-                if(State.shake > 0) {
-                    shakeX = (Math.random()-0.5) * State.shake;
-                    shakeY = (Math.random()-0.5) * State.shake;
-                    State.shake *= 0.9;
-                }
-
-                // Smooth follow
-                const targetX = me.x - canvas.width/2;
-                const targetY = me.y - canvas.height/2;
-                
-                State.camera.x += (targetX - State.camera.x) * CONFIG.cameraSmooth + shakeX;
-                State.camera.y += (targetY - State.camera.y) * CONFIG.cameraSmooth + shakeY;
-            },
-
-            updateProjectiles: function() {
-                State.hammers.forEach((h, i) => {
-                    h.x += h.vx; h.y += h.vy; h.life--;
-                    
-                    if(h.life <= 0) {
-                        State.hammers.splice(i, 1);
-                        Game.explode(h.x, h.y, h.angle);
-                        
-                        if(State.isHunter) {
-                            // Collision Check (Players)
-                            Object.keys(State.players).forEach(pid => {
-                                if(pid !== State.myId && !State.players[pid].isHunter && State.players[pid].status === 'ALIVE') {
-                                    if(Game.dist(h.x, h.y, State.players[pid].x, State.players[pid].y) < 70) {
-                                        update(ref(db, `rooms/global/players/${pid}`), { status: 'DEAD' });
-                                        Game.addScore(300);
-                                        Game.addKillFeed("YOU", State.players[pid].nick);
-                                    }
-                                }
-                            });
-                            // Collision Check (Bots)
-                            Bots.bots.forEach(b => {
-                                if(b.status === 'ALIVE' && !b.isHunter && Game.dist(h.x, h.y, b.x, b.y) < 70) {
-                                    b.status = 'DEAD';
-                                    Game.addScore(150);
-                                    Game.explode(b.x, b.y, 0, '#888');
-                                    Game.addKillFeed("YOU", b.nick);
-                                }
-                            });
-                        }
-                    }
-                });
-            },
-
-            updateParticles: function() {
-                State.particles.forEach((p, i) => {
-                    p.x += p.vx; p.y += p.vy; p.life -= 0.04;
-                    if(p.life <= 0) State.particles.splice(i, 1);
-                });
-            },
-
-            render: function() {
-                // Clear
-                ctx.fillStyle = "#0a0a12";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                ctx.save();
-                ctx.translate(-State.camera.x, -State.camera.y);
-
-                // Grid
-                ctx.strokeStyle = "rgba(255,255,255,0.03)";
-                ctx.lineWidth = 2;
-                const gridSize = 100;
-                const startX = Math.floor(State.camera.x / gridSize) * gridSize;
-                const startY = Math.floor(State.camera.y / gridSize) * gridSize;
-                
-                for(let x = startX; x < startX + canvas.width + gridSize; x += gridSize) {
-                    ctx.beginPath(); ctx.moveTo(x, State.camera.y); ctx.lineTo(x, State.camera.y + canvas.height); ctx.stroke();
-                }
-                for(let y = startY; y < startY + canvas.height + gridSize; y += gridSize) {
-                    ctx.beginPath(); ctx.moveTo(State.camera.x, y); ctx.lineTo(State.camera.x + canvas.width, y); ctx.stroke();
-                }
-
-                // Map Borders
-                ctx.strokeStyle = "#ff0055"; ctx.lineWidth = 5;
-                ctx.strokeRect(0, 0, CONFIG.mapWidth, CONFIG.mapHeight);
-
-                // Draw Entities (Bots + Players)
-                const allEntities = [...Object.values(State.players), ...Bots.bots];
-                
-                allEntities.forEach(e => {
-                    if(e.status === 'DEAD') return;
-                    
-                    const isMe = e.nick === State.nick;
-                    const color = e.isHunter ? CONFIG.colors.hunter : (isMe ? CONFIG.colors.me : (e.id && e.id.includes('bot') ? CONFIG.colors.bot : CONFIG.colors.enemy));
-
-                    // Glow
-                    ctx.shadowBlur = 20; ctx.shadowColor = color;
-                    ctx.fillStyle = color;
-                    
-                    // Body
-                    ctx.beginPath(); ctx.arc(e.x, e.y, 16, 0, Math.PI*2); ctx.fill();
-                    
-                    // Ring
-                    ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.lineWidth = 2;
-                    ctx.beginPath(); ctx.arc(e.x, e.y, 22, 0, Math.PI*2); ctx.stroke();
-
-                    // Name
-                    ctx.shadowBlur = 0; ctx.fillStyle = "white"; 
-                    ctx.font = "bold 12px Rajdhani"; ctx.textAlign = "center";
-                    ctx.fillText(e.nick, e.x, e.y - 35);
-                    
-                    // Health Bar (Fake)
-                    ctx.fillStyle = "#333"; ctx.fillRect(e.x-15, e.y-30, 30, 4);
-                    ctx.fillStyle = "#0f0"; ctx.fillRect(e.x-15, e.y-30, 30, 4);
-                });
-
-                // Draw Hammers
-                if(State.isHunter) {
-                    State.rotation += 0.3;
-                    const me = State.players[State.myId];
-                    if(me) {
-                        ctx.save(); ctx.translate(me.x, me.y);
-                        // Rotate towards mouse
-                        const angle = Math.atan2(State.mouse.worldY - me.y, State.mouse.worldX - me.x);
-                        ctx.rotate(angle);
-                        ctx.translate(20, 0); // Offset from body
-                        ctx.rotate(State.rotation); // Spin
-                        
-                        ctx.fillStyle = "#ffd700"; ctx.shadowBlur = 15; ctx.shadowColor = "#ffd700";
-                        ctx.fill(HammerPath);
-                        ctx.restore();
-                    }
-                }
-
-                // Flying Projectiles
-                State.hammers.forEach(h => {
-                    ctx.save(); ctx.translate(h.x, h.y); ctx.rotate(h.angle);
-                    ctx.fillStyle = "#ff4757"; ctx.shadowBlur = 20; ctx.shadowColor = "red";
-                    ctx.fill(HammerPath);
-                    ctx.restore();
-                });
-
-                // Particles
-                State.particles.forEach(p => {
-                    ctx.globalAlpha = p.life;
-                    ctx.fillStyle = p.c;
-                    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
-                });
-                ctx.globalAlpha = 1;
-
-                ctx.restore();
-            },
-
-            renderMinimap: function() {
-                mmCtx.clearRect(0, 0, 150, 150);
-                mmCtx.fillStyle = "rgba(0,0,0,0.8)";
-                mmCtx.fillRect(0, 0, 150, 150);
-                
-                const scaleX = 150 / CONFIG.mapWidth;
-                const scaleY = 150 / CONFIG.mapHeight;
-
-                [...Object.values(State.players), ...Bots.bots].forEach(e => {
-                    if(e.status === 'DEAD') return;
-                    mmCtx.fillStyle = e.isHunter ? '#f00' : (e.nick === State.nick ? '#0ff' : '#fff');
-                    mmCtx.beginPath();
-                    mmCtx.arc(e.x * scaleX, e.y * scaleY, 2, 0, Math.PI*2);
-                    mmCtx.fill();
-                });
-            },
-
-            // UTILS
-            dist: (x1,y1,x2,y2) => Math.hypot(x2-x1, y2-y1),
-            
-            explode: function(x, y, angle, color) {
-                State.shake = 20;
-                for(let i=0; i<15; i++) {
-                    State.particles.push({
-                        x, y, vx: (Math.random()-0.5)*15, vy: (Math.random()-0.5)*15,
-                        life: 1, size: Math.random()*4, c: color || (State.isHunter ? '#ffd700' : '#0ff')
-                    });
-                }
-            },
-
-            addScore: function(val) {
-                State.score += val;
-                State.kills++;
-                update(ref(db, `rooms/global/players/${State.myId}`), { score: State.score });
-                document.getElementById('score-val').innerText = State.score;
-                document.getElementById('kills-val').innerText = State.kills;
-            },
-
-            addKillFeed: function(killer, victim) {
-                const feed = document.getElementById('killfeed');
-                const div = document.createElement('div');
-                div.className = 'kill-msg';
-                div.innerHTML = `<b>${killer}</b> TERMINATED ${victim}`;
-                feed.prepend(div);
-                if(feed.children.length > 5) feed.lastChild.remove();
-                setTimeout(() => div.remove(), 4000);
-            }
-        };
-
-        // --- GLOBAL EVENTS ---
-        window.Game = Game; // Expose for button
-
-        window.addEventListener('mousemove', e => {
-            State.mouse.x = e.clientX; State.mouse.y = e.clientY;
-        });
-
-        window.addEventListener('mousedown', () => { if(State.isHunter && State.ammo > 0) State.mouse.down = true; });
-        window.addEventListener('mouseup', () => { 
-            if(State.mouse.down) { 
-                State.mouse.down = false;
-                State.ammo--;
-                Game.updateAmmoUI();
-                
-                // Shoot Math
-                const me = State.players[State.myId];
-                if(me) {
-                    const angle = Math.atan2(State.mouse.worldY - me.y, State.mouse.worldX - me.x);
-                    State.hammers.push({
-                        x: me.x, y: me.y,
-                        vx: Math.cos(angle) * CONFIG.hammerSpeed,
-                        vy: Math.sin(angle) * CONFIG.hammerSpeed,
-                        angle: angle, life: 50
-                    });
-                }
-            } 
-        });
-
-        Game.updateAmmoUI = function() {
-            const rack = document.getElementById('ammo-rack'); rack.innerHTML = '';
-            for(let i=0; i<3; i++) rack.innerHTML += `<div class="ammo-slug ${i<State.ammo?'':'empty'}"></div>`;
-        };
-
-        // --- FIREBASE LISTENERS ---
-        onValue(ref(db, `rooms/global/players`), snap => {
-            const data = snap.val() || {};
-            State.players = data;
-
-            // Lobby List Update
-            const list = document.getElementById('lobby-list');
-            const count = document.getElementById('lobby-count');
-            if(list && count) {
-                list.innerHTML = '';
-                const keys = Object.keys(data);
-                count.innerText = keys.length;
-                keys.forEach(id => { list.innerHTML += `<div>> UNIT: ${data[id].nick} [${data[id].score||0} PTS]</div>` });
-            }
-
-            // Game Logic Updates
-            if(data[State.myId]?.status === 'DEAD') {
-                document.getElementById('death-screen').style.display = 'flex';
-                State.alive = false;
-                setTimeout(() => location.reload(), 2000);
-            }
-
-            // Leaderboard
-            const lb = document.getElementById('lb-content');
-            if(lb) {
-                lb.innerHTML = '';
-                Object.values(data).sort((a,b)=>(b.score||0)-(a.score||0)).slice(0,5).forEach(p => {
-                    lb.innerHTML += `<div class="lb-row ${p.nick===State.nick?'me':''}">${p.nick}: ${p.score||0}</div>`;
-                });
-            }
-
-            // Hunter Logic
-            const hunterId = Object.keys(data).find(id => data[id].isHunter);
-            if(!hunterId && Object.keys(data).length > 0) {
-                 update(ref(db, `rooms/global/players/${Object.keys(data)[0]}`), { isHunter: true, t: Date.now() });
-            }
-
-            const me = data[State.myId];
-            if(me?.isHunter) {
-                if(!State.isHunter) { 
-                    State.isHunter = true; State.ammo = 3; State.hunterStart = Date.now(); Game.updateAmmoUI(); 
-                    Game.addKillFeed("SYSTEM", "YOU ARE THE HUNTER");
-                }
-                let t = Math.max(0, 15 - (Date.now() - State.hunterStart)/1000).toFixed(1);
-                document.getElementById('timer-display').innerText = t;
-                if(t <= 0) update(ref(db, `rooms/global/players/${State.myId}`), { status: 'DEAD' });
-            } else {
-                State.isHunter = false; 
-                document.getElementById('timer-display').innerText = "SURVIVE";
-            }
-        });
+        // Temporary Hunter Assignment (First player gets hammer after 5s)
+        setTimeout(() => {
+           db.ref(`rooms/${roomId}/players`).once('value', snap => {
+               let all = snap.val();
+               if (!all) return;
+               let ids = Object.keys(all);
+               if (ids.length > 0 && ids[0] === myId) {
+                   db.ref(`rooms/${roomId}/players/${myId}`).update({isHunter: true});
+               }
+           });
+        }, 5000);
 
     </script>
 </body>
