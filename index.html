@@ -3,140 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HammerCurs.io - Prime Arena</title>
+    <title>HammerCurs.io - Cyber Arena</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
 
     <style>
-        /* --- CORE STYLES --- */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+        /* --- GLOBAL STYLES --- */
         body { 
-            margin: 0; overflow: hidden; background: #0f0f0f; 
-            font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; 
-            color: white; user-select: none; 
+            margin: 0; overflow: hidden; background: #050505; 
+            font-family: 'Orbitron', sans-serif; color: white; user-select: none; 
         }
-        
-        /* --- LOBBY DESIGN (Curved & Modern) --- */
+
+        /* --- MENU BACKGROUND (Particles) --- */
+        #bg-canvas {
+            position: absolute; top: 0; left: 0; z-index: 1;
+        }
+
+        /* --- LOBBY SCREEN (UI) --- */
         #lobby-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
             display: flex; flex-direction: column;
-            justify-content: center; align-items: center; z-index: 100;
+            justify-content: center; align-items: center; z-index: 10;
+            background: radial-gradient(circle, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.9) 100%);
         }
 
-        h1 {
-            font-weight: 800; font-size: 72px; letter-spacing: -2px;
-            background: linear-gradient(135deg, #ffcc00, #ff6600);
+        .logo {
+            font-size: 80px; font-weight: 900; letter-spacing: 5px;
+            background: linear-gradient(180deg, #fff, #ffcc00);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            margin-bottom: 40px;
+            text-shadow: 0 0 30px rgba(255, 204, 0, 0.6);
+            margin-bottom: 50px; text-transform: uppercase;
+            animation: float 3s ease-in-out infinite;
         }
 
-        .glass-panel {
+        .input-box {
             background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 30px;
-            padding: 40px;
-            width: 400px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            padding: 20px 40px; border-radius: 15px;
             display: flex; flex-direction: column; gap: 20px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            transform: skewX(-5deg);
         }
 
         input {
-            background: rgba(0,0,0,0.3); border: 2px solid #333;
-            border-radius: 15px; padding: 15px 20px;
-            color: white; font-size: 18px; text-align: center;
-            outline: none; transition: 0.3s;
+            background: transparent; border: none; border-bottom: 2px solid #555;
+            color: white; font-size: 24px; text-align: center; font-family: 'Orbitron';
+            padding: 10px; width: 300px; outline: none; transition: 0.3s;
         }
-        input:focus { border-color: #ffcc00; box-shadow: 0 0 15px rgba(255, 204, 0, 0.2); }
+        input:focus { border-color: #ffcc00; box-shadow: 0 10px 20px -10px rgba(255, 204, 0, 0.3); }
 
-        /* ROOM SELECTOR */
-        .room-list { display: flex; flex-direction: column; gap: 10px; }
-        .room-item {
-            background: rgba(255,255,255,0.03);
-            border-radius: 12px; padding: 15px;
-            display: flex; justify-content: space-between; align-items: center;
-            cursor: pointer; transition: 0.2s; border: 1px solid transparent;
-        }
-        .room-item:hover { background: rgba(255,255,255,0.1); transform: scale(1.02); }
-        .room-item.selected { border-color: #ffcc00; background: rgba(255, 204, 0, 0.1); }
-
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 10px currentColor; }
-        
         .play-btn {
-            background: linear-gradient(90deg, #ffcc00, #ff9900);
-            border: none; border-radius: 20px;
-            padding: 18px; font-size: 20px; font-weight: bold; color: #000;
-            cursor: pointer; transition: 0.2s; margin-top: 10px;
+            background: #ffcc00; color: #000; border: none;
+            font-size: 30px; font-weight: 900; padding: 20px;
+            cursor: pointer; clip-path: polygon(10% 0, 100% 0, 100% 100%, 0% 100%);
+            transition: 0.2s; text-transform: uppercase; letter-spacing: 2px;
+            animation: pulse 1.5s infinite;
         }
-        .play-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(255, 153, 0, 0.3); }
-        .play-btn:active { transform: scale(0.98); }
+        .play-btn:hover { background: #fff; transform: scale(1.05); }
+        .play-btn:active { transform: scale(0.95); }
 
-        /* --- IN-GAME HUD (Functional & Clean) --- */
-        #ui-layer { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .status { font-size: 14px; color: #666; margin-top: 10px; text-align: center; }
+
+        /* --- GAME HUD --- */
+        #ui-layer { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
+
+        .hud-top {
+            position: absolute; top: 20px; width: 100%; display: flex; justify-content: center; gap: 50px;
+        }
         
-        .hud-bar {
-            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px);
-            border-radius: 40px; padding: 10px 30px;
-            display: flex; gap: 40px; align-items: center;
-            border: 1px solid rgba(255,255,255,0.1);
+        .stat-card {
+            background: rgba(0,0,0,0.6); padding: 10px 30px; border-radius: 5px;
+            border-bottom: 4px solid #ffcc00;
+            text-align: center;
         }
+        .stat-val { font-size: 28px; font-weight: bold; color: white; }
+        .stat-label { font-size: 12px; color: #aaa; letter-spacing: 1px; }
 
-        .stat { font-size: 18px; font-weight: 600; color: #ddd; }
-        .stat span { color: #ffcc00; font-size: 24px; margin-left: 8px; }
-        
-        #timer-display { 
-            font-size: 32px; font-weight: 700; color: white; min-width: 80px; text-align: center; font-variant-numeric: tabular-nums; 
-        }
-        .timer-danger { color: #ff3333 !important; animation: shake 0.4s infinite; text-shadow: 0 0 20px red; }
+        #timer-box { font-size: 40px; color: #ffcc00; text-shadow: 0 0 20px #ffcc00; }
+        .timer-panic { color: #ff0000 !important; animation: shake 0.2s infinite; font-size: 50px !important; }
 
-        /* NOTIFICATIONS */
-        #notify-area {
-            position: absolute; top: 25%; width: 100%; text-align: center;
-            font-size: 48px; font-weight: 800; letter-spacing: 2px;
-            text-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            opacity: 0; transition: opacity 0.3s;
+        #waiting-msg {
+            position: absolute; top: 30%; width: 100%; text-align: center;
+            font-size: 40px; color: rgba(255,255,255,0.5); text-transform: uppercase;
+            display: none;
         }
 
         /* --- ANIMATIONS --- */
-        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+        @keyframes float { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 204, 0, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(255, 204, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 204, 0, 0); } }
+        @keyframes shake { 0% { transform: translate(1px, 1px); } 50% { transform: translate(-1px, -2px); } 100% { transform: translate(1px, -1px); } }
+
         canvas { display: block; }
     </style>
 </head>
 <body>
 
-    <div id="lobby-screen">
-        <h1>HammerCurs.io</h1>
-        
-        <div class="glass-panel">
-            <input type="text" id="nickname" placeholder="Enter Nickname" maxlength="12">
-            
-            <div class="room-list" id="room-list">
-                <div style="text-align:center; color:#666;">Loading servers...</div>
-            </div>
+    <canvas id="bg-canvas"></canvas>
 
-            <button class="play-btn" onclick="tryJoinGame()">ENTER ARENA</button>
+    <div id="lobby-screen">
+        <div class="logo">HammerCurs.io</div>
+        
+        <div class="input-box">
+            <input type="text" id="nickname" placeholder="ENTER NICKNAME" maxlength="12">
+            <button class="play-btn" onclick="startMatchmaking()">QUICK PLAY</button>
+            <div class="status" id="status-text">Ready to connect...</div>
         </div>
     </div>
 
     <div id="ui-layer">
-        <div class="hud-bar">
-            <div class="stat">SCORE <span id="ui-score">0</span></div>
-            <div id="timer-display">05:00</div>
-            <div class="stat">KILLS <span id="ui-kills">0</span></div>
+        <div class="hud-top">
+            <div class="stat-card">
+                <div class="stat-val" id="ui-score">0</div>
+                <div class="stat-label">SCORE</div>
+            </div>
+            
+            <div id="timer-box">WAITING</div>
+            
+            <div class="stat-card">
+                <div class="stat-val" id="ui-kills">0</div>
+                <div class="stat-label">KILLS</div>
+            </div>
         </div>
-        <div id="notify-area"></div>
+        <div id="waiting-msg">SEARCHING FOR OPPONENTS...</div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
 
     <script>
         /* ===========================================
-           SECURE ENGINE CONFIGURATION (Base64)
-           ===========================================
-        */
+           1. SECURE CONFIG (BASE64)
+           =========================================== */
         const _k = {
             a: "QUl6YVN5QV80a1pkLUFTRVhBQXEtR2NrYzJqeTZsaWpQTFF6S20w",
             b: "aGFtbWVyY3Vycy1pby5maXJlYmFzZWFwcC5jb20=",
@@ -156,107 +157,136 @@
         const db = firebase.database();
         const auth = firebase.auth();
 
-        /* ================= VARIABLES ================= */
+        /* ===========================================
+           2. MENU PARTICLES (VISUALS)
+           =========================================== */
+        const bgCv = document.getElementById('bg-canvas');
+        const bgCtx = bgCv.getContext('2d');
+        let particles = [];
+
+        function initParticles() {
+            bgCv.width = window.innerWidth;
+            bgCv.height = window.innerHeight;
+            for(let i=0; i<50; i++) {
+                particles.push({
+                    x: Math.random()*bgCv.width, y: Math.random()*bgCv.height,
+                    vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*2,
+                    size: Math.random()*3
+                });
+            }
+            animateBG();
+        }
+        function animateBG() {
+            bgCtx.clearRect(0,0,bgCv.width,bgCv.height);
+            bgCtx.fillStyle = '#ffcc00';
+            particles.forEach(p => {
+                p.x += p.vx; p.y += p.vy;
+                if(p.x<0) p.x=bgCv.width; if(p.x>bgCv.width) p.x=0;
+                if(p.y<0) p.y=bgCv.height; if(p.y>bgCv.height) p.y=0;
+                bgCtx.beginPath(); bgCtx.arc(p.x, p.y, p.size, 0, Math.PI*2); bgCtx.fill();
+            });
+            requestAnimationFrame(animateBG);
+        }
+        initParticles();
+
+        /* ===========================================
+           3. AUTO-MATCHMAKING LOGIC
+           =========================================== */
+        
+        const ARENAS = ['arena_1', 'arena_2', 'arena_3', 'arena_4', 'arena_5'];
+        let selectedRoom = null;
+        let myNick = "";
+
+        async function startMatchmaking() {
+            const nickInput = document.getElementById('nickname');
+            myNick = nickInput.value.trim();
+            if (myNick.length < 3) {
+                alert("NICKNAME TOO SHORT!"); return;
+            }
+
+            const status = document.getElementById('status-text');
+            status.innerText = "SCANNING SERVERS...";
+            status.style.color = "#ffcc00";
+
+            // AUTO-FIND ALGORITHM
+            let bestRoom = null;
+            let maxPlayers = -1;
+
+            // Scan all 5 arenas
+            for (let room of ARENAS) {
+                const snap = await db.ref(`rooms/${room}/players`).get();
+                const count = snap.numChildren();
+                
+                // Logic: Find room with most players but less than 15
+                if (count < 15) {
+                    if (count > maxPlayers) {
+                        maxPlayers = count;
+                        bestRoom = room;
+                    }
+                }
+            }
+
+            // If all full, just pick first one (queue logic later)
+            if (!bestRoom) bestRoom = ARENAS[0];
+
+            console.log(`FOUND MATCH: ${bestRoom} (${maxPlayers} players)`);
+            status.innerText = `JOINING ${bestRoom.toUpperCase()}...`;
+            
+            selectedRoom = bestRoom;
+            auth.signInAnonymously().catch(e => alert(e.message));
+        }
+
+        /* ===========================================
+           4. GAME ENGINE
+           =========================================== */
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        
-        let myId, myNick;
-        let selectedRoom = "arena_1";
-        let gameActive = false;
-        
+        let myId, gameActive = false;
         let me = { x: 0, y: 0, angle: 0, isHunter: false };
-        let players = {};
-        let coins = [];
-        let cam = { x: 0, y: 0 };
-        let mouse = { x: 0, y: 0 };
-        
-        // Physics Config
+        let players = {}, coins = [];
+        let cam = { x: 0, y: 0 }, mouse = { x: 0, y: 0 };
         const MAP = 3000;
         let hammerInertia = 0;
 
-        /* ================= LOBBY LOGIC ================= */
-        
-        // Generate Room List with Live Colors
-        const rooms = ['arena_1', 'arena_2', 'arena_3'];
-        
-        function updateRoomList() {
-            const container = document.getElementById('room-list');
-            container.innerHTML = ''; // Clear
-
-            rooms.forEach((rid, i) => {
-                // Get player count for color logic
-                db.ref(`rooms/${rid}/players`).once('value', snap => {
-                    const count = snap.numChildren();
-                    let color = '#ff3333'; // Red (1-3)
-                    if (count >= 4) color = '#ffcc00'; // Orange
-                    if (count >= 10) color = '#00ff00'; // Green
-                    if (count >= 14) color = '#0074D9'; // Blue (Full)
-
-                    const div = document.createElement('div');
-                    div.className = `room-item ${selectedRoom === rid ? 'selected' : ''}`;
-                    div.innerHTML = `
-                        <span>Arena ${i+1}</span>
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <span style="font-size:12px; opacity:0.7;">${count}/15</span>
-                            <div class="status-dot" style="color:${color}; background:${color};"></div>
-                        </div>
-                    `;
-                    div.onclick = () => { selectedRoom = rid; updateRoomList(); };
-                    container.appendChild(div);
-                });
-            });
-        }
-        
-        // Initial Room Load
-        updateRoomList();
-        setInterval(updateRoomList, 5000); // Refresh list every 5s
-
-        function tryJoinGame() {
-            const nickInput = document.getElementById('nickname');
-            const nick = nickInput.value.trim();
-
-            if (nick.length < 3) {
-                alert("Nickname must be at least 3 characters!");
-                nickInput.style.borderColor = "red";
-                return;
-            }
-            
-            myNick = nick;
-            document.getElementById('status-text').innerText = "Connecting..."; // Temp feedback
-            auth.signInAnonymously().catch(e => alert("Auth Error: " + e.message));
-        }
-
         auth.onAuthStateChanged(user => {
-            if (user && !gameActive && myNick) {
+            if (user && selectedRoom && !gameActive) {
                 myId = user.uid;
-                startGame();
+                initGame();
             }
         });
 
-        /* ================= GAME ENGINE ================= */
-
-        function startGame() {
+        function initGame() {
             document.getElementById('lobby-screen').style.display = 'none';
+            document.getElementById('bg-canvas').style.display = 'none'; // Hide menu bg
             document.getElementById('ui-layer').style.display = 'block';
             gameActive = true;
             resize();
 
-            // Spawn
+            // Spawn random
             me.x = Math.random() * MAP;
             me.y = Math.random() * MAP;
 
+            // Join Room
             db.ref(`rooms/${selectedRoom}/players/${myId}`).set({
-                x: me.x, y: me.y,
-                pts: 0, kills: 0, isHunter: false,
-                nick: myNick
+                x: me.x, y: me.y, pts: 0, kills: 0, isHunter: false, nick: myNick
             });
 
             // Listeners
             db.ref(`rooms/${selectedRoom}/players`).on('value', s => {
                 players = s.val() || {};
+                
+                // Update Waiting Message
+                const pCount = Object.keys(players).length;
+                const waitMsg = document.getElementById('waiting-msg');
+                if (pCount < 2) {
+                    waitMsg.style.display = 'block';
+                    waitMsg.innerText = "WAITING FOR OPPONENTS...";
+                } else {
+                    waitMsg.style.display = 'none';
+                }
+
                 if (!players[myId] && gameActive) death();
                 else if (players[myId]) {
-                    // Update UI
                     document.getElementById('ui-score').innerText = players[myId].pts;
                     document.getElementById('ui-kills').innerText = players[myId].kills || 0;
                     me.isHunter = players[myId].isHunter;
@@ -268,7 +298,6 @@
                 if (coins.length < 50 && me.isHunter) spawnCoins();
             });
 
-            // Start Loops
             requestAnimationFrame(render);
             setInterval(netSync, 70);
             startTimer();
@@ -281,61 +310,55 @@
             });
         }
 
-        /* ================= PHYSICS & RENDER ================= */
-
+        /* ===========================================
+           5. RENDER & PHYSICS
+           =========================================== */
         function render() {
             if (!gameActive) return;
 
-            // 1. Move
+            // Physics
             let dx = mouse.x - canvas.width/2;
             let dy = mouse.y - canvas.height/2;
             let dist = Math.hypot(dx, dy);
-            let speed = 6; // slightly faster for dynamic feel
-            
+            let speed = 7;
             let vx = 0, vy = 0;
+
             if (dist > 20) {
-                vx = (dx/dist) * speed;
-                vy = (dy/dist) * speed;
-                me.x += vx;
-                me.y += vy;
+                vx = (dx/dist)*speed; vy = (dy/dist)*speed;
+                me.x += vx; me.y += vy;
             }
-            
-            // Bounds
             me.x = Math.max(0, Math.min(MAP, me.x));
             me.y = Math.max(0, Math.min(MAP, me.y));
             
-            // Cam
             cam.x = me.x - canvas.width/2;
             cam.y = me.y - canvas.height/2;
 
-            // 2. Helicopter Inertia
+            // Inertia
             let inertiaTarget = (Math.abs(vx) + Math.abs(vy)) * 0.03;
             hammerInertia += (inertiaTarget - hammerInertia) * 0.1;
             me.angle += (0.15 + hammerInertia);
 
-            // 3. Draw
-            ctx.fillStyle = '#121212';
+            // Draw
+            ctx.fillStyle = '#0a0a0a';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
+
             // Grid
-            ctx.lineWidth = 1;
-            ctx.strokeStyle = '#222';
-            ctx.beginPath();
-            for(let x = -cam.x % 100; x < canvas.width; x+=100) { ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); }
-            for(let y = -cam.y % 100; y < canvas.height; y+=100) { ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); }
+            ctx.lineWidth = 1; ctx.strokeStyle = '#222'; ctx.beginPath();
+            for(let x=-cam.x%100; x<canvas.width; x+=100){ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);}
+            for(let y=-cam.y%100; y<canvas.height; y+=100){ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);}
             ctx.stroke();
 
             ctx.save();
             ctx.translate(-cam.x, -cam.y);
 
             // Coins
-            ctx.fillStyle = '#ffcc00';
+            ctx.fillStyle = '#ffcc00'; ctx.shadowBlur = 10; ctx.shadowColor = '#ffcc00';
             coins.forEach((c, i) => {
                 if(!c) return;
                 ctx.beginPath(); ctx.arc(c.x, c.y, 8, 0, Math.PI*2); ctx.fill();
-                // Collision
-                if (Math.hypot(me.x - c.x, me.y - c.y) < 30) takeCoin(i);
+                if (Math.hypot(me.x-c.x, me.y-c.y) < 30) takeCoin(i);
             });
+            ctx.shadowBlur = 0;
 
             // Players
             for(let pid in players) {
@@ -343,45 +366,30 @@
                 let isMe = pid === myId;
                 let ang = isMe ? me.angle : p.angle;
 
-                // Player Circle
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, 25, 0, Math.PI*2);
+                ctx.beginPath(); ctx.arc(p.x, p.y, 25, 0, Math.PI*2);
                 ctx.fillStyle = p.isHunter ? '#ff3333' : (isMe ? '#0074d9' : '#fff');
-                ctx.shadowBlur = p.isHunter ? 30 : 0;
-                ctx.shadowColor = 'red';
-                ctx.fill();
-                ctx.shadowBlur = 0;
+                if(p.isHunter) { ctx.shadowBlur = 30; ctx.shadowColor = 'red'; }
+                ctx.fill(); ctx.shadowBlur = 0;
 
-                // Nickname
-                ctx.fillStyle = 'rgba(255,255,255,0.8)';
-                ctx.font = '600 14px "Segoe UI"';
-                ctx.textAlign = 'center';
-                ctx.fillText(p.nick || "Unknown", p.x, p.y - 40);
+                // Name
+                ctx.fillStyle = '#fff'; ctx.font = '12px Orbitron'; ctx.textAlign = 'center';
+                ctx.fillText(p.nick, p.x, p.y - 40);
 
                 // Hammer
-                if (p.isHunter) {
-                    let hx = p.x + Math.cos(ang) * 90;
-                    let hy = p.y + Math.sin(ang) * 90;
-
-                    // Handle
+                if(p.isHunter) {
+                    let hx = p.x + Math.cos(ang)*90;
+                    let hy = p.y + Math.sin(ang)*90;
                     ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(hx, hy);
-                    ctx.lineWidth = 8; ctx.strokeStyle = '#555'; ctx.stroke();
-
-                    // Head
-                    ctx.save();
-                    ctx.translate(hx, hy);
-                    ctx.rotate(ang);
-                    ctx.fillStyle = '#888';
-                    ctx.fillRect(-15, -25, 50, 50); // Main block
-                    ctx.fillStyle = '#aaa'; 
-                    ctx.fillRect(-5, -15, 30, 30);  // Detail
+                    ctx.lineWidth = 8; ctx.strokeStyle = '#333'; ctx.stroke();
+                    
+                    ctx.save(); ctx.translate(hx, hy); ctx.rotate(ang);
+                    ctx.fillStyle = '#888'; ctx.fillRect(-15,-25,50,50);
+                    ctx.fillStyle = '#ffcc00'; ctx.fillRect(-5,-15,10,30); // Neon core
                     ctx.restore();
 
-                    // Attack Logic
-                    if (isMe) {
+                    if(isMe) {
                         for(let eid in players) {
-                            if (eid === myId) continue;
-                            if (Math.hypot(hx - players[eid].x, hy - players[eid].y) < 60) smash(eid);
+                            if(eid !== myId && Math.hypot(hx-players[eid].x, hy-players[eid].y) < 60) smash(eid);
                         }
                     }
                 }
@@ -390,29 +398,25 @@
             requestAnimationFrame(render);
         }
 
-        /* ================= LOGIC & EVENTS ================= */
-
+        /* ===========================================
+           6. LOGIC
+           =========================================== */
         function takeCoin(i) {
             delete coins[i];
             db.ref(`rooms/${selectedRoom}/coins/${i}`).remove();
-            db.ref(`players/${myId}/pts`).transaction(v => (v||0) + 5);
+            db.ref(`players/${myId}/pts`).transaction(v => (v||0)+5);
         }
 
         function smash(eid) {
-            // Bonus for me
-            db.ref(`players/${myId}/pts`).transaction(v => (v||0) + 50);
-            db.ref(`players/${myId}/kills`).transaction(v => (v||0) + 1);
-            
-            // Penalty for victim
-            db.ref(`players/${eid}/pts`).transaction(v => Math.max(0, (v||0) - 300));
+            db.ref(`players/${myId}/pts`).transaction(v => (v||0)+50);
+            db.ref(`players/${myId}/kills`).transaction(v => (v||0)+1);
+            db.ref(`players/${eid}/pts`).transaction(v => Math.max(0,(v||0)-300));
             db.ref(`rooms/${selectedRoom}/players/${eid}`).remove();
-            
-            showNotify("ENEMY CRUSHED!");
         }
 
         function death() {
             gameActive = false;
-            alert("YOU WERE CRUSHED! -300 PTS");
+            alert("CRUSHED! -300 PTS");
             location.reload();
         }
 
@@ -423,42 +427,30 @@
         }
 
         function startTimer() {
-            let t = 300; // 5 mins
-            let el = document.getElementById('timer-display');
-            
+            let t = 300; 
+            const el = document.getElementById('timer-box');
             setInterval(() => {
                 t--;
-                let m = Math.floor(t/60);
-                let s = t%60;
-                el.innerText = `0${m}:${s<10?'0'+s:s}`;
-
-                if (t <= 10) el.classList.add('timer-danger');
-                if (t <= 0 && gameActive) {
+                let m = Math.floor(t/60), s = t%60;
+                el.innerText = `${m}:${s<10?'0'+s:s}`;
+                if(t<10) el.classList.add('timer-panic');
+                if(t<=0 && gameActive) {
                     alert("SURVIVED! +400 PTS");
-                    db.ref(`players/${myId}/pts`).transaction(v => (v||0) + 400);
+                    db.ref(`players/${myId}/pts`).transaction(v=>(v||0)+400);
                     location.reload();
                 }
             }, 1000);
         }
 
-        function showNotify(msg) {
-            let el = document.getElementById('notify-area');
-            el.innerText = msg;
-            el.style.color = '#ffcc00';
-            el.style.opacity = 1;
-            setTimeout(() => el.style.opacity = 0, 1500);
-        }
-
         // Inputs
         window.onmousemove = e => { mouse.x = e.clientX; mouse.y = e.clientY; };
-        window.onresize = resize;
-        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.onresize = () => { canvas.width=window.innerWidth; canvas.height=window.innerHeight; };
 
-        // Auto-Hunter (First player logic)
+        // Auto-Hunter Logic
         setTimeout(() => {
             db.ref(`rooms/${selectedRoom}/players`).once('value', s => {
                 let d = s.val();
-                if (d && Object.keys(d)[0] === myId) db.ref(`rooms/${selectedRoom}/players/${myId}`).update({isHunter:true});
+                if(d && Object.keys(d)[0] === myId) db.ref(`rooms/${selectedRoom}/players/${myId}`).update({isHunter:true});
             });
         }, 5000);
 
